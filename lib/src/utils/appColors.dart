@@ -43,6 +43,10 @@ const tBlueDark = Color(0xFF176EF9);
 const tBlueLight = Color(0xFFd0d9ff);
 const tBlueSky = Color(0xFF00C1D9);
 const tBlueSky1 = Color(0xFFf2f7fb);
+const tGreenLight = Color(0xFFDCEDC1);
+const tOrangeLight = Color(0xFFFFCC80);
+const tPurpleLight = Color(0xFFE1BEE7);
+const tOrangeDark = Color(0xFFFC7808);
 const tBlueGradient = LinearGradient(
   colors: [Color(0xFF184BFF), Color(0xFF0E2D99)],
   begin: Alignment.topLeft,
