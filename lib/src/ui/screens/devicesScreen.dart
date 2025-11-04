@@ -715,7 +715,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
               Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    context.push('/home/devices/device_detail');
+                    context.go('/home/devices/device_detail');
                   },
                   child: Container(
                     decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:svg_flutter/svg.dart';
 import 'package:tm_fleet_management/src/ui/screens/devicesScreen.dart';
@@ -45,12 +46,7 @@ class CanDataScreen extends StatelessWidget {
                   // Device Icon
                   GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const DevicesScreen(),
-                        ),
-                      );
+                      context.go('/home/devices/device_detail');
                     },
                     child: SvgPicture.asset(
                       'icons/device.svg',

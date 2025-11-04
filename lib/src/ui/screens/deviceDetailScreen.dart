@@ -1,8 +1,5 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:svg_flutter/svg.dart';
 import 'package:tm_fleet_management/src/ui/screens/can_data_screen.dart';
 import 'package:tm_fleet_management/src/ui/screens/devicesScreen.dart';
@@ -370,7 +367,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
   }
 
   Widget _buildTitle(context, isDark) {
-    final isMobile = MediaQuery.of(context).size.width < 600;
+    // final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween, // ✅ push icon to right
@@ -461,114 +458,114 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
     );
   }
 
-  Widget _buildDynamicDropdown(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: tTransparent,
-        border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton2<String>(
-          isExpanded: false,
-          hint: Text(
-            'Select Group',
-            style: GoogleFonts.urbanist(fontSize: 12.5, color: tGrey),
-          ),
-          items:
-              groups
-                  .map(
-                    (group) => DropdownMenuItem<String>(
-                      value: group,
-                      child: Text(
-                        group,
-                        style: GoogleFonts.urbanist(
-                          fontSize: 12.5,
-                          color: isDark ? tWhite : tBlack,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-          value: selectedGroup,
-          onChanged: (value) => setState(() => selectedGroup = value),
-          iconStyleData: IconStyleData(
-            icon: Icon(
-              CupertinoIcons.chevron_down,
-              size: 16,
-              color: isDark ? tWhite : tBlack,
-            ),
-          ),
-          dropdownStyleData: DropdownStyleData(
-            padding: EdgeInsets.zero,
-            maxHeight: 200,
-            decoration: BoxDecoration(
-              color: isDark ? tBlack : tWhite,
-              boxShadow: [
-                BoxShadow(
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  color:
-                      isDark
-                          ? tWhite.withOpacity(0.25)
-                          : tBlack.withOpacity(0.15),
-                ),
-              ],
-            ),
-          ),
-          buttonStyleData: const ButtonStyleData(
-            padding: EdgeInsets.zero,
-            height: 30,
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildDynamicDropdown(bool isDark) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 8),
+  //     decoration: BoxDecoration(
+  //       color: tTransparent,
+  //       border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
+  //     ),
+  //     child: DropdownButtonHideUnderline(
+  //       child: DropdownButton2<String>(
+  //         isExpanded: false,
+  //         hint: Text(
+  //           'Select Group',
+  //           style: GoogleFonts.urbanist(fontSize: 12.5, color: tGrey),
+  //         ),
+  //         items:
+  //             groups
+  //                 .map(
+  //                   (group) => DropdownMenuItem<String>(
+  //                     value: group,
+  //                     child: Text(
+  //                       group,
+  //                       style: GoogleFonts.urbanist(
+  //                         fontSize: 12.5,
+  //                         color: isDark ? tWhite : tBlack,
+  //                         fontWeight: FontWeight.w600,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 )
+  //                 .toList(),
+  //         value: selectedGroup,
+  //         onChanged: (value) => setState(() => selectedGroup = value),
+  //         iconStyleData: IconStyleData(
+  //           icon: Icon(
+  //             CupertinoIcons.chevron_down,
+  //             size: 16,
+  //             color: isDark ? tWhite : tBlack,
+  //           ),
+  //         ),
+  //         dropdownStyleData: DropdownStyleData(
+  //           padding: EdgeInsets.zero,
+  //           maxHeight: 200,
+  //           decoration: BoxDecoration(
+  //             color: isDark ? tBlack : tWhite,
+  //             boxShadow: [
+  //               BoxShadow(
+  //                 spreadRadius: 2,
+  //                 blurRadius: 10,
+  //                 color:
+  //                     isDark
+  //                         ? tWhite.withOpacity(0.25)
+  //                         : tBlack.withOpacity(0.15),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         buttonStyleData: const ButtonStyleData(
+  //           padding: EdgeInsets.zero,
+  //           height: 30,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildDynamicDatePicker(bool isDark) {
-    return GestureDetector(
-      onTap: _selectDate,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: tTransparent,
-          border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
-        ),
-        child: Text(
-          DateFormat('dd MMM yyyy').format(selectedDate).toUpperCase(),
-          style: GoogleFonts.urbanist(
-            fontSize: 12.5,
-            color: isDark ? tWhite : tBlack,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildDynamicDatePicker(bool isDark) {
+  //   return GestureDetector(
+  //     onTap: _selectDate,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //       decoration: BoxDecoration(
+  //         color: tTransparent,
+  //         border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
+  //       ),
+  //       child: Text(
+  //         DateFormat('dd MMM yyyy').format(selectedDate).toUpperCase(),
+  //         style: GoogleFonts.urbanist(
+  //           fontSize: 12.5,
+  //           color: isDark ? tWhite : tBlack,
+  //           fontWeight: FontWeight.w600,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Future<void> _selectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder:
-          (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: Colors.blueAccent,
-                onPrimary: Colors.white,
-                onSurface: Colors.black,
-              ),
-            ),
-            child: child!,
-          ),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() => selectedDate = picked);
-    }
-  }
+  // Future<void> _selectDate() async {
+  //   final picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: selectedDate,
+  //     firstDate: DateTime(2020),
+  //     lastDate: DateTime(2030),
+  //     builder:
+  //         (context, child) => Theme(
+  //           data: Theme.of(context).copyWith(
+  //             colorScheme: const ColorScheme.light(
+  //               primary: Colors.blueAccent,
+  //               onPrimary: Colors.white,
+  //               onSurface: Colors.black,
+  //             ),
+  //           ),
+  //           child: child!,
+  //         ),
+  //   );
+  //   if (picked != null && picked != selectedDate) {
+  //     setState(() => selectedDate = picked);
+  //   }
+  // }
 
   Widget _buildVehicleHeaderSection(bool isDark) {
     return Row(

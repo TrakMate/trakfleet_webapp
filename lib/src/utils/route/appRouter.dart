@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:tm_fleet_management/src/ui/screens/can_data_screen.dart';
+import '../../ui/screens/can_data_screen.dart';
 
 import '../../ui/screens/loadingScreen.dart';
 import '../../ui/screens/loginScreen.dart';
@@ -39,18 +39,19 @@ class AppRouter {
           ),
           GoRoute(
             path: '/home/devices',
-            name: 'devices',
             builder: (context, state) => const DevicesScreen(),
-          ),
-          GoRoute(
-            path: '/home/devices/device_detail',
-            name: 'device_detail',
-            builder: (context, state) => const DeviceDetailScreen(),
-          ),
-          GoRoute(
-            path: '/home/devices/device_detail/can_data',
-            name: 'can_data',
-            builder: (context, state) => const CanDataScreen(),
+            routes: [
+              GoRoute(
+                path: 'device_detail',
+                builder: (context, state) => const DeviceDetailScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'can_data',
+                    builder: (context, state) => const CanDataScreen(),
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
             path: '/home/trips',
