@@ -1,12 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
+import '../widgets/charts/tripsChart.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -29,10 +33,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final int totalVehicles = 5075;
 
   final List<Map<String, dynamic>> baseStatuses = [
-    {'label': 'Moving', 'color': tBlue, 'percent': 25.0},
-    {'label': 'Stopped', 'color': tGreen, 'percent': 45.0},
-    {'label': 'Idle', 'color': tOrange1, 'percent': 35.0},
-    {'label': 'Disconnected', 'color': tRedDark, 'percent': 20.0},
+    {'label': 'Moving', 'color': tGreen, 'percent': 22.0},
+    {'label': 'Stopped', 'color': tRed, 'percent': 40.0},
+    {'label': 'Idle', 'color': tOrange1, 'percent': 30.0},
+    {'label': 'Disconnected', 'color': tGrey, 'percent': 20.0},
+    {'label': 'Non-Coverage', 'color': Colors.purple, 'percent': 20.0},
   ];
 
   List<Map<String, dynamic>> _getStatusWithCounts() {
@@ -150,6 +155,118 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 15),
+                  // Alerts Summary
+                  Container(
+                    width: double.infinity,
+                    height: 210,
+                    decoration: BoxDecoration(
+                      color: isDark ? tBlack : tWhite,
+                      boxShadow: [
+                        BoxShadow(
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.25)
+                                  : tBlack.withOpacity(0.15),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildAlertsHeaderSection(isDark),
+                        const SizedBox(height: 5),
+                        Divider(
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.6)
+                                  : tBlack.withOpacity(0.6),
+                          thickness: 0.6,
+                        ),
+                        const SizedBox(height: 5),
+                        _buildAlertsBottomSection(),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Container(
+                    height: 250,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? tBlack : tWhite,
+                      boxShadow: [
+                        BoxShadow(
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.25)
+                                  : tBlack.withOpacity(0.15),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: SingleChildScrollView(
+                      child: buildAlertsWidget(isDark: isDark),
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Container(
+                    height: 325,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? tBlack : tWhite,
+                      boxShadow: [
+                        BoxShadow(
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.25)
+                                  : tBlack.withOpacity(0.15),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(2),
+                    child: buildVehicleMap(isDark: isDark, zoom: 14),
+                  ),
+                  SizedBox(height: 15),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? tBlack : tWhite,
+                      boxShadow: [
+                        BoxShadow(
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.25)
+                                  : tBlack.withOpacity(0.15),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildTripsHeaderSection(isDark),
+                        const SizedBox(height: 5),
+                        Divider(
+                          color:
+                              isDark
+                                  ? tWhite.withOpacity(0.6)
+                                  : tBlack.withOpacity(0.6),
+                          thickness: 0.6,
+                        ),
+                        const SizedBox(height: 5),
+                        _buildTripsBottomSection(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -159,34 +276,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTabletLayout() => Container();
-
-  Widget _buildDesktopLayout() {
+  Widget _buildTabletLayout() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildTitle(isDark),
-            Row(
-              children: [
-                _buildGroupSelector(isDark),
-                const SizedBox(width: 10),
-                _buildDateSelector(isDark),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            // Left Vehicle Summary
-            Expanded(
-              child: Container(
-                width: double.infinity,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildTitle(isDark),
+              Row(
+                children: [
+                  _buildGroupSelector(isDark),
+                  const SizedBox(width: 10),
+                  _buildDateSelector(isDark),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              // Left Vehicle Summary
+              Container(
+                width: MediaQuery.of(context).size.width * 0.35,
                 height: 210,
                 decoration: BoxDecoration(
                   color: isDark ? tBlack : tWhite,
@@ -218,51 +333,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(width: 10),
+              const SizedBox(width: 10),
 
-            // Right Vehicle Status Progress
-            Container(
-              width: MediaQuery.of(context).size.width * 0.5,
-              height: 210,
-              decoration: BoxDecoration(
-                color: isDark ? tBlack : tWhite,
-                boxShadow: [
-                  BoxShadow(
-                    spreadRadius: 2,
-                    blurRadius: 10,
-                    color:
-                        isDark
-                            ? tWhite.withOpacity(0.25)
-                            : tBlack.withOpacity(0.15),
+              // Right Vehicle Status Progress
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  height: 210,
+                  decoration: BoxDecoration(
+                    color: isDark ? tBlack : tWhite,
+                    boxShadow: [
+                      BoxShadow(
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        color:
+                            isDark
+                                ? tWhite.withOpacity(0.25)
+                                : tBlack.withOpacity(0.15),
+                      ),
+                    ],
                   ),
-                ],
+                  padding: const EdgeInsets.all(15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vehicle Status',
+                        style: GoogleFonts.urbanist(
+                          fontSize: 16,
+                          color: isDark ? tWhite : tBlack,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Expanded(
+                        child: _buildMobileDynamicStatusBar(
+                          _getStatusWithCounts(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              padding: const EdgeInsets.all(15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Vehicle Status',
-                    style: GoogleFonts.urbanist(
-                      fontSize: 16,
-                      color: isDark ? tWhite : tBlack,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Expanded(
-                    child: _buildDynamicStatusBar(_getStatusWithCounts()),
-                  ),
-                ],
-              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          Container(
+            height: 325,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark ? tBlack : tWhite,
+              boxShadow: [
+                BoxShadow(
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  color:
+                      isDark
+                          ? tWhite.withOpacity(0.25)
+                          : tBlack.withOpacity(0.15),
+                ),
+              ],
             ),
-            const SizedBox(width: 10),
-
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                height: 210,
+            padding: const EdgeInsets.all(5),
+            child: buildVehicleMap(isDark: isDark, zoom: 14),
+          ),
+          SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width * 0.35,
+                height: 225,
                 decoration: BoxDecoration(
                   color: isDark ? tBlack : tWhite,
                   boxShadow: [
@@ -280,39 +421,395 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
+                    _buildAlertsHeaderSection(isDark),
+                    const SizedBox(height: 5),
+                    Divider(
+                      color:
+                          isDark
+                              ? tWhite.withOpacity(0.6)
+                              : tBlack.withOpacity(0.6),
+                      thickness: 0.6,
+                    ),
+                    const SizedBox(height: 5),
+                    _buildAlertsBottomSection(),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 225,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDark ? tBlack : tWhite,
+                    boxShadow: [
+                      BoxShadow(
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        color:
+                            isDark
+                                ? tWhite.withOpacity(0.25)
+                                : tBlack.withOpacity(0.15),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: SingleChildScrollView(
+                    child: buildAlertsWidget(isDark: isDark),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildTitle(isDark),
+            Row(
+              children: [
+                _buildGroupSelector(isDark),
+                const SizedBox(width: 10),
+                _buildDateSelector(isDark),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Left Vehicle Summary
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 210,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          children: [
+                            _buildVehicleHeaderSection(isDark),
+                            const SizedBox(height: 5),
+                            Divider(
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.6)
+                                      : tBlack.withOpacity(0.6),
+                              thickness: 0.6,
+                            ),
+                            const SizedBox(height: 5),
+                            _buildVehicleBottomSection(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Right Vehicle Status Progress
+                    Expanded(
+                      flex: 7,
+                      child: Container(
+                        // width: MediaQuery.of(context).size.width * 0.5,
+                        height: 210,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Alerts',
+                              'Vehicle Status',
                               style: GoogleFonts.urbanist(
-                                fontSize: 14,
+                                fontSize: 16,
                                 color: isDark ? tWhite : tBlack,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              '575',
-                              style: GoogleFonts.urbanist(
-                                fontSize: 35,
-                                color: isDark ? tWhite : tBlack,
-                                fontWeight: FontWeight.bold,
+                            const SizedBox(height: 15),
+                            Expanded(
+                              child: _buildDynamicStatusBar(
+                                _getStatusWithCounts(),
                               ),
                             ),
                           ],
                         ),
-                        _buildIconCircle('icons/alerts.svg', tRedDark),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Alerts Summary
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        // width: double.infinity,
+                        height: 210,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildAlertsHeaderSection(isDark),
+                            const SizedBox(height: 5),
+                            Divider(
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.6)
+                                      : tBlack.withOpacity(0.6),
+                              thickness: 0.6,
+                            ),
+                            const SizedBox(height: 5),
+                            _buildAlertsBottomSection(),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 325,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTripsHeaderSection(isDark),
+                            const SizedBox(height: 5),
+                            Divider(
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.6)
+                                      : tBlack.withOpacity(0.6),
+                              thickness: 0.6,
+                            ),
+                            const SizedBox(height: 5),
+                            _buildTripsBottomSection(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 7,
+                      child: Container(
+                        height: 325,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child:
+                        // kIsWeb
+                        //     ? GoogleMap(
+                        //       initialCameraPosition: const CameraPosition(
+                        //         target: LatLng(
+                        //           12.9716,
+                        //           77.5946,
+                        //         ), // Example: Bengaluru
+                        //         zoom: 14,
+                        //       ),
+                        //       zoomControlsEnabled: true,
+                        //       mapType: MapType.normal,
+                        //       markers: {
+                        //         Marker(
+                        //           markerId: const MarkerId('main'),
+                        //           position: const LatLng(12.9716, 77.5946),
+                        //           infoWindow: const InfoWindow(
+                        //             title: 'HQ Location',
+                        //           ),
+                        //         ),
+                        //       },
+                        //       onMapCreated: (
+                        //         GoogleMapController controller,
+                        //       ) {
+                        //         // Optional controller storage
+                        //       },
+                        //     )
+                        //     : Center(
+                        //       child: Text(
+                        //         'Map is supported only on web platform.',
+                        //         style: TextStyle(
+                        //           color:
+                        //               isDark
+                        //                   ? Colors.white70
+                        //                   : Colors.black54,
+                        //           fontSize: 14,
+                        //         ),
+                        //       ),
+                        //     ),
+                        buildVehicleMap(isDark: isDark, zoom: 14),
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 325,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(10),
+                        child: SingleChildScrollView(
+                          child: buildAlertsWidget(isDark: isDark),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 325,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: TripsChart(),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 325,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        height: 325,
+                        decoration: BoxDecoration(
+                          color: isDark ? tBlack : tWhite,
+                          boxShadow: [
+                            BoxShadow(
+                              spreadRadius: 2,
+                              blurRadius: 10,
+                              color:
+                                  isDark
+                                      ? tWhite.withOpacity(0.25)
+                                      : tBlack.withOpacity(0.15),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(15),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -512,6 +1009,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildAlertsHeaderSection(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildTotalAlertsInfo(isDark),
+        _buildIconCircle('icons/alerts.svg', tRedDark),
+      ],
+    );
+  }
+
+  Widget _buildTripsHeaderSection(bool isDark) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildTotalTripsInfo(isDark),
+        _buildIconCircle('icons/trip.svg', tPink2),
+      ],
+    );
+  }
+
   Widget _buildTotalVehiclesInfo(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,6 +1091,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildTotalAlertsInfo(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alerts',
+          style: GoogleFonts.urbanist(
+            fontSize: 14,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          '575',
+          style: GoogleFonts.urbanist(
+            fontSize: 35,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalTripsInfo(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Trips',
+          style: GoogleFonts.urbanist(
+            fontSize: 14,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          '50745',
+          style: GoogleFonts.urbanist(
+            fontSize: 35,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildIconCircle(String iconPath, Color color) => Container(
     width: 60,
     height: 60,
@@ -589,13 +1156,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildVehicleStatusColumn(
+        _buildAnyValuesColumn(
           iconPath: 'icons/vehicle.svg',
           iconColor: tGreen,
           title: 'Active Vehicles',
           value: '900',
         ),
-        _buildVehicleStatusColumn(
+        _buildAnyValuesColumn(
           iconPath: 'icons/vehicle.svg',
           iconColor: tRedDark,
           title: 'Inactive Vehicles',
@@ -605,7 +1172,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildVehicleStatusColumn({
+  Widget _buildAlertsBottomSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildAnyValuesColumn(
+          iconPath: 'icons/alerts.svg',
+          iconColor: tRedDark,
+          title: 'Crtitical Alerts',
+          value: '195',
+        ),
+        _buildAnyValuesColumn(
+          iconPath: 'icons/alerts.svg',
+          iconColor: tBlue1,
+          title: 'Non-Critical Alerts',
+          value: '380',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTripsBottomSection() {
+    final List<Map<String, dynamic>> tripStats = [
+      {
+        'iconPath': 'icons/distance.svg',
+        'iconColor': tGreen,
+        'title': 'Distance Covered (km)',
+        'value': '120,450',
+      },
+      {
+        'iconPath': 'icons/consumedhours.svg',
+        'iconColor': tPink,
+        'title': 'Consumed Hours',
+        'value': '3,450',
+      },
+      {
+        'iconPath': 'icons/completed.svg',
+        'iconColor': tBlue,
+        'title': 'Completed Trips',
+        'value': '45,300',
+      },
+      {
+        'iconPath': 'icons/battery.svg',
+        'iconColor': tOrange1,
+        'title': 'Power (kWh)',
+        'value': '75,200',
+      },
+    ];
+
+    return GridView.count(
+      physics: const NeverScrollableScrollPhysics(), // avoid nested scroll
+      shrinkWrap: true, // so it fits inside Column
+      crossAxisCount: 2, // 2 items per row
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 0,
+      childAspectRatio: 1.8, // adjust spacing shape
+      children:
+          tripStats.map((stat) {
+            return _buildAnyValuesColumn(
+              iconPath: stat['iconPath'],
+              iconColor: stat['iconColor'],
+              title: stat['title'],
+              value: stat['value'],
+            );
+          }).toList(),
+    );
+  }
+
+  Widget _buildAnyValuesColumn({
     required String iconPath,
     required Color iconColor,
     required String title,
@@ -915,6 +1549,209 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget buildVehicleMap({bool isDark = false, double zoom = 12.0}) {
+    final vehicles = [
+      {'location': const LatLng(12.9716, 77.5946), 'status': 'moving'},
+      {'location': const LatLng(12.9750, 77.6000), 'status': 'idle'},
+      {'location': const LatLng(12.9680, 77.5800), 'status': 'stopped'},
+      {'location': const LatLng(12.9650, 77.6200), 'status': 'disconnected'},
+      {'location': const LatLng(12.9810, 77.6050), 'status': 'moving'},
+      {'location': const LatLng(12.9890, 77.6100), 'status': 'idle'},
+      {'location': const LatLng(12.9600, 77.5950), 'status': 'stopped'},
+      {'location': const LatLng(12.9550, 77.5850), 'status': 'disconnected'},
+      {'location': const LatLng(12.9760, 77.5900), 'status': 'moving'},
+      {'location': const LatLng(12.9830, 77.6000), 'status': 'idle'},
+    ];
+
+    final tileUrl =
+        isDark
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+    String getTruckIcon(String status) {
+      switch (status) {
+        case 'moving':
+          return 'assets/icons/truck1.svg';
+        case 'idle':
+          return 'assets/icons/truck2.svg';
+        case 'stopped':
+          return 'assets/icons/truck3.svg';
+        case 'disconnected':
+          return 'assets/icons/truck4.svg';
+        default:
+          return 'assets/icons/truck1.svg';
+      }
+    }
+
+    return FlutterMap(
+      key: const ValueKey('vehicle_map_widget'),
+      options: MapOptions(
+        initialCenter: const LatLng(12.9716, 77.5946),
+        initialZoom: zoom,
+        maxZoom: 18.0,
+        minZoom: 3.0,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: tileUrl,
+          subdomains: const ['a', 'b', 'c'],
+          userAgentPackageName: 'com.example.app',
+        ),
+        MarkerLayer(
+          markers:
+              vehicles.map((vehicle) {
+                final LatLng point = vehicle['location'] as LatLng;
+                final String iconPath = getTruckIcon(
+                  vehicle['status'] as String,
+                );
+
+                return Marker(
+                  point: point,
+                  width: 35,
+                  height: 35,
+                  child: SvgPicture.asset(iconPath, width: 25, height: 25),
+                );
+              }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget buildAlertsWidget({bool isDark = false}) {
+    // 10 dummy alert entries
+    final List<Map<String, String>> alerts = List.generate(10, (index) {
+      final alertTypes = [
+        'Power Disconnect',
+        'GPRS Lost',
+        'Over Speed',
+        'Ignition On',
+        'Ignition Off',
+        'Geo Fence Alert',
+        'Battery Low',
+        'Tilt Alert',
+        'Fall Detected',
+        'SOS Triggered',
+      ];
+
+      return {
+        'vehicleId': 'VHC-${1000 + index}',
+        'imei': 'IMEI-${8900000 + index}',
+        'dateTime': '26 Oct 2025, ${10 + index}:15:30',
+        'alertType': alertTypes[index % alertTypes.length],
+      };
+    });
+
+    Color getAlertColor(String type) {
+      if (type.contains('Disconnect') || type.contains('Lost')) return tRed;
+      if (type.contains('Low') || type.contains('Fall')) return tOrange1;
+      if (type.contains('Speed')) return Colors.amber;
+      if (type.contains('Ignition')) return tBlue;
+      if (type.contains('Geo') || type.contains('Tilt')) return Colors.purple;
+      if (type.contains('SOS')) return Colors.redAccent;
+      return tGrey;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alerts Info',
+          style: GoogleFonts.urbanist(
+            fontSize: 14,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...alerts.map((alert) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            child: Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? tBlack : tWhite,
+                boxShadow: [
+                  BoxShadow(
+                    spreadRadius: 1,
+                    blurRadius: 6,
+                    color:
+                        isDark
+                            ? tWhite.withOpacity(0.1)
+                            : tBlack.withOpacity(0.1),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Vehicle ID + IMEI
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Vehicle: ${alert['vehicleId']}',
+                        style: GoogleFonts.urbanist(
+                          color: isDark ? tWhite : tBlack,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'IMEI: ${alert['imei']}',
+                        style: GoogleFonts.urbanist(
+                          color: isDark ? Colors.grey[300] : Colors.grey[700],
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Date & Time
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        alert['dateTime']!,
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[300] : Colors.grey[800],
+                          fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      // Alert Type
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: getAlertColor(alert['alertType']!),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          alert['alertType']!,
+                          style: GoogleFonts.urbanist(
+                            color: isDark ? tBlack : tWhite,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 }

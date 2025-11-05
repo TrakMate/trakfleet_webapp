@@ -52,9 +52,14 @@ dependencies:
   google_fonts: 
   svg_flutter: 
   logger:
+  flutter_map:
+  flutter_map_marker_cluster:
+  flutter_map_marker_popup: 
+  latlong2:
+
+  fl_chart: ^0.71.0
 
   dropdown_button2:
-  fl_chart: ^1.1.1
 
 dev_dependencies:
   flutter_test:
