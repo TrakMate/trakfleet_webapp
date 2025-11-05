@@ -1,4 +1,14 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:svg_flutter/svg.dart';
+
+import '../../utils/appColors.dart';
+import '../../utils/appResponsive.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({super.key});
@@ -8,8 +18,1269 @@ class TripsScreen extends StatefulWidget {
 }
 
 class _TripsScreenState extends State<TripsScreen> {
+  String selectedFilter = "All Trips";
+  Map<String, dynamic>? selectedTrip;
+  // flutter_map controller
+  final MapController _mapController = MapController();
+
+  // Dummy route coordinates (replace with real route coords per trip)
+  late final List<LatLng> _routePoints;
+  double _currentZoom = 13.0; // default zoom
+
+  // Playback state
+  Timer? _playTimer;
+  bool _isPlaying = false;
+  int _playIndex = 0;
+  LatLng? _movingMarker; // position of the animated marker
+
+  // Playback speed (milliseconds)
+  final int _tickMs = 1000;
+
+  final List<Map<String, dynamic>> allTrips = List.generate(50, (index) {
+    bool isOngoing = index.isEven;
+
+    final bengaluruAreas = [
+      'Koramangala',
+      'Indiranagar',
+      'Whitefield',
+      'Electronic City',
+      'HSR Layout',
+      'Jayanagar',
+      'BTM Layout',
+      'MG Road',
+      'Rajajinagar',
+      'Malleshwaram',
+      'Hebbal',
+      'Yelahanka',
+      'Ulsoor',
+      'Marathahalli',
+      'Banashankari',
+      'KR Puram',
+      'Basavanagudi',
+      'Vijayanagar',
+      'Bellandur',
+      'RT Nagar',
+    ];
+
+    final randomSource = bengaluruAreas[index % bengaluruAreas.length];
+    final randomDestination =
+        bengaluruAreas[(index + 5) %
+            bengaluruAreas.length]; // ensure not same as source
+
+    return {
+      'tripNumber': '00${index + 1}',
+      'truckNumber': 'TRK${1000 + index}',
+      'status': isOngoing ? 'Ongoing' : 'Completed',
+      'startTime': isOngoing ? '10:${index % 6}0 AM' : '08:${index % 6}0 AM',
+      'endTime': isOngoing ? '—' : '09:${index % 6}0 AM',
+      'durationMins': '${20 + index * 3}',
+      'distanceKm': '${10 + index * 2}',
+      'maxSpeed': '${60 + index * 2}',
+      'avgSpeed': '${45 + (index % 20)}',
+      'source': '$randomSource, Bengaluru',
+      'destination': '$randomDestination, Bengaluru',
+    };
+  });
+
+  List<Map<String, dynamic>> get filteredTrips {
+    if (selectedFilter == "Ongoing") {
+      return allTrips.where((t) => t['status'] == 'Ongoing').toList();
+    } else if (selectedFilter == "Completed") {
+      return allTrips.where((t) => t['status'] == 'Completed').toList();
+    } else {
+      return allTrips;
+    }
+  }
+
+  // Add these state variables at the top of your State class:
+  int currentPage = 1;
+  int itemsPerPage = 12; // you can tweak this
+  int get totalPages => (filteredTrips.length / itemsPerPage).ceil();
+
+  List<Map<String, dynamic>> get paginatedTrips {
+    final start = (currentPage - 1) * itemsPerPage;
+    final end = start + itemsPerPage;
+    return filteredTrips.sublist(
+      start,
+      end > filteredTrips.length ? filteredTrips.length : end,
+    );
+  }
+
+  void _nextPage() {
+    if (currentPage < totalPages) setState(() => currentPage++);
+  }
+
+  void _previousPage() {
+    if (currentPage > 1) setState(() => currentPage--);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Example dummy route between two points (replace coordinates as needed)
+    _routePoints = [
+      LatLng(12.9716, 77.5946), // Start - MG Road
+      LatLng(12.9719, 77.5952),
+      LatLng(12.9723, 77.5958),
+      LatLng(12.9728, 77.5963),
+      LatLng(12.9733, 77.5968),
+      LatLng(12.9738, 77.5973),
+      LatLng(12.9742, 77.5978),
+      LatLng(12.9747, 77.5983),
+      LatLng(12.9751, 77.5989),
+      LatLng(12.9756, 77.5994),
+      LatLng(12.9760, 77.5999),
+      LatLng(12.9764, 77.6005),
+      LatLng(12.9769, 77.6010),
+      LatLng(12.9773, 77.6016),
+      LatLng(12.9777, 77.6021),
+      LatLng(12.9781, 77.6027),
+      LatLng(12.9785, 77.6033),
+      LatLng(12.9790, 77.6038),
+      LatLng(12.9794, 77.6044),
+      LatLng(12.9798, 77.6050),
+      LatLng(12.9803, 77.6056),
+      LatLng(12.9807, 77.6061),
+      LatLng(12.9811, 77.6067),
+      LatLng(12.9815, 77.6072),
+      LatLng(12.9820, 77.6078), // End - Near Ulsoor
+    ];
+
+    // Start marker at first point
+    _movingMarker = _routePoints.isNotEmpty ? _routePoints[0] : null;
+
+    // Move map to initial center
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_routePoints.isNotEmpty) {
+        _mapController.move(_routePoints[0], 13);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _playTimer?.cancel();
+    super.dispose();
+  }
+
+  void _togglePlayback() {
+    if (_isPlaying) {
+      _stopPlayback();
+    } else {
+      _startPlayback();
+    }
+  }
+
+  void _startPlayback() {
+    if (_routePoints.isEmpty) return;
+
+    // Reset index if at end
+    if (_playIndex >= _routePoints.length - 1) {
+      _playIndex = 0;
+      _movingMarker = _routePoints[0];
+      _mapController.move(_movingMarker!, _currentZoom);
+    }
+
+    _playTimer?.cancel();
+    setState(() => _isPlaying = true);
+
+    _playTimer = Timer.periodic(Duration(milliseconds: _tickMs), (timer) {
+      // Move index forward
+      if (_playIndex < _routePoints.length - 1) {
+        _playIndex++;
+        _movingMarker = _routePoints[_playIndex];
+
+        // Move map center to follow the moving marker (optional)
+        _mapController.move(_movingMarker!, _currentZoom);
+
+        // Trigger rebuild to update marker layer
+        setState(() {});
+      } else {
+        // reached the end — stop playback
+        _stopPlayback();
+      }
+    });
+  }
+
+  void _stopPlayback() {
+    _playTimer?.cancel();
+    setState(() {
+      _isPlaying = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return ResponsiveLayout(
+      mobile: _buildMobileLayout(),
+      tablet: _buildTabletLayout(),
+      desktop: _buildDesktopLayout(),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTitle(isDark),
+          const SizedBox(height: 10),
+          _buildFilterBySearch(isDark),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? tWhite.withOpacity(0.1) : tGrey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSwapButton("All Trips", isDark),
+                _buildSwapButton("Ongoing", isDark),
+                _buildSwapButton("Completed", isDark),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children:
+                    filteredTrips
+                        .map(
+                          (trip) => Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5.0,
+                              vertical: 5,
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (trip['status'] == 'Completed') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => TripDetailScreen(trip: trip),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: buildTripCard(
+                                isDark: isDark,
+                                tripNumber: trip['tripNumber'],
+                                truckNumber: trip['truckNumber'],
+                                status: trip['status'],
+                                startTime: trip['startTime'],
+                                endTime: trip['endTime'],
+                                durationMins: trip['durationMins'],
+                                distanceKm: trip['distanceKm'],
+                                maxSpeed: trip['maxSpeed'],
+                                avgSpeed: trip['avgSpeed'],
+                                source: trip['source'],
+                                destination: trip['destination'],
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletLayout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [_buildTitle(isDark), _buildFilterBySearch(isDark)],
+          ),
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDark ? tWhite.withOpacity(0.1) : tGrey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSwapButton("All Trips", isDark),
+                _buildSwapButton("Ongoing", isDark),
+                _buildSwapButton("Completed", isDark),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Trips Grid
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // 4 → no selection, 2 → detail open
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 2,
+              ),
+              itemCount: paginatedTrips.length,
+              itemBuilder: (context, index) {
+                final trip = paginatedTrips[index];
+                return GestureDetector(
+                  onTap: () {
+                    if (trip['status'] == 'Completed') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TripDetailScreen(trip: trip),
+                        ),
+                      );
+                    }
+                  },
+                  child: buildTripCard(
+                    isDark: isDark,
+                    tripNumber: trip['tripNumber'],
+                    truckNumber: trip['truckNumber'],
+                    status: trip['status'],
+                    startTime: trip['startTime'],
+                    endTime: trip['endTime'],
+                    durationMins: trip['durationMins'],
+                    distanceKm: trip['distanceKm'],
+                    maxSpeed: trip['maxSpeed'],
+                    avgSpeed: trip['avgSpeed'],
+                    source: trip['source'],
+                    destination: trip['destination'],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Pagination controls
+          if (totalPages > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+                    onPressed: _previousPage,
+                  ),
+                  Text(
+                    "Page $currentPage of $totalPages",
+                    style: GoogleFonts.urbanist(
+                      fontSize: 14,
+                      color: isDark ? tWhite : tBlack,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                    onPressed: _nextPage,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDesktopLayout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [_buildTitle(isDark), _buildFilterBySearch(isDark)],
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: Row(
+            children: [
+              // LEFT PANEL (Trips Grid)
+              Expanded(
+                flex:
+                    selectedTrip == null
+                        ? 10
+                        : 5, // shrink grid when trip selected
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Filter buttons
+                      Container(
+                        width: 600,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isDark ? tWhite : tBlack,
+                            width: 0.6,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(5),
+
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildSwapButton("All Trips", isDark),
+                            _buildSwapButton("Ongoing", isDark),
+                            _buildSwapButton("Completed", isDark),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Trips Grid
+                      Expanded(
+                        child: GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    selectedTrip == null
+                                        ? 4
+                                        : 2, // 4 → no selection, 2 → detail open
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1.5,
+                              ),
+                          itemCount: paginatedTrips.length,
+                          itemBuilder: (context, index) {
+                            final trip = paginatedTrips[index];
+                            return GestureDetector(
+                              onTap: () {
+                                if (trip['status'] == 'Completed') {
+                                  setState(() {
+                                    selectedTrip = trip;
+                                  });
+                                }
+                              },
+                              child: buildTripCard(
+                                isDark: isDark,
+                                tripNumber: trip['tripNumber'],
+                                truckNumber: trip['truckNumber'],
+                                status: trip['status'],
+                                startTime: trip['startTime'],
+                                endTime: trip['endTime'],
+                                durationMins: trip['durationMins'],
+                                distanceKm: trip['distanceKm'],
+                                maxSpeed: trip['maxSpeed'],
+                                avgSpeed: trip['avgSpeed'],
+                                source: trip['source'],
+                                destination: trip['destination'],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      // Pagination controls
+                      if (totalPages > 1)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  size: 18,
+                                ),
+                                onPressed: _previousPage,
+                              ),
+                              Text(
+                                "Page $currentPage of $totalPages",
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 14,
+                                  color: isDark ? tWhite : tBlack,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 18,
+                                ),
+                                onPressed: _nextPage,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // RIGHT PANEL (Trip Details)
+              if (selectedTrip != null)
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color:
+                          isDark
+                              ? tWhite.withOpacity(0.05)
+                              : tGrey.withOpacity(0.05),
+                    ),
+                    child: _buildTripDetailsView(selectedTrip!, isDark),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitle(bool isDark) => Text(
+    'Trips',
+    style: GoogleFonts.urbanist(
+      fontSize: 20,
+      color: isDark ? tWhite : tBlack,
+      fontWeight: FontWeight.bold,
+    ),
+  );
+
+  Widget _buildFilterBySearch(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 250,
+          height: 40,
+          decoration: BoxDecoration(
+            color: tTransparent,
+            border: Border.all(color: isDark ? tWhite : tBlack, width: 1),
+          ),
+          child: TextField(
+            style: GoogleFonts.urbanist(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? tWhite : tBlack,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Search',
+              hintStyle: GoogleFonts.urbanist(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? tWhite : tBlack,
+              ),
+              border: InputBorder.none,
+              prefixIcon: Icon(
+                CupertinoIcons.search,
+                color: isDark ? tWhite : tBlack,
+                size: 18,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          '(Note: Filter by Search)',
+          style: GoogleFonts.urbanist(
+            fontSize: 10,
+            color: isDark ? tWhite.withOpacity(0.6) : tBlack.withOpacity(0.6),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwapButton(String label, bool isDark) {
+    final bool isSelected = selectedFilter == label;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            selectedFilter = label;
+          });
+        },
+        child: Container(
+          decoration: BoxDecoration(color: isSelected ? tBlue : tTransparent),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: GoogleFonts.urbanist(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? tWhite : (isDark ? tWhite : tBlack),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildTripCard({
+    required bool isDark,
+    required String tripNumber,
+    required String truckNumber,
+    required String status,
+    required String startTime,
+    required String endTime,
+    required String durationMins,
+    required String distanceKm,
+    required String maxSpeed,
+    required String avgSpeed,
+    required String source,
+    required String destination,
+  }) {
+    Color statusColor;
+    switch (status.toLowerCase()) {
+      case 'ongoing':
+        statusColor = tGreen;
+        break;
+      case 'completed':
+        statusColor = tBlue;
+        break;
+      default:
+        statusColor = tGrey;
+    }
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: isDark ? tBlack : tWhite,
+        // borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            spreadRadius: 2,
+            blurRadius: 10,
+            color: isDark ? tWhite.withOpacity(0.1) : tBlack.withOpacity(0.1),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          // Header row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: statusColor, width: 1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(5),
+                            topRight: Radius.circular(5),
+                          ),
+                        ),
+                        child: Text(
+                          tripNumber,
+                          style: GoogleFonts.urbanist(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? tBlack : tWhite,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Text(
+                          'TRUCK - $truckNumber',
+                          style: GoogleFonts.urbanist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? tWhite : tBlack,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      status,
+                      style: GoogleFonts.urbanist(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? tBlack : tWhite,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Time: $startTime / $endTime',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 11,
+                      color: isDark ? tWhite : tBlack,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatColumn(
+                isDark,
+                title: 'Trip Duration (min)',
+                value: durationMins,
+              ),
+              _buildStatColumn(
+                isDark,
+                title: 'Trip Distance (km)',
+                value: distanceKm,
+                alignEnd: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildStatColumn(
+                isDark,
+                title: 'Trip MAX Speed (km/h)',
+                value: maxSpeed,
+              ),
+              _buildStatColumn(
+                isDark,
+                title: 'Trip AVG Speed (km/h)',
+                value: avgSpeed,
+                alignEnd: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Divider(
+            color: isDark ? tWhite.withOpacity(0.4) : tBlack.withOpacity(0.4),
+            thickness: 0.3,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/geofence.svg',
+                width: 16,
+                height: 16,
+                color: tGreen,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'Source: $source',
+                  style: GoogleFonts.urbanist(
+                    fontSize: 13,
+                    color: isDark ? tWhite : tBlack,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              SvgPicture.asset(
+                'assets/icons/geofence.svg',
+                width: 16,
+                height: 16,
+                color: tRedDark,
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  'Destination: $destination',
+                  style: GoogleFonts.urbanist(
+                    fontSize: 13,
+                    color: isDark ? tWhite : tBlack,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatColumn(
+    bool isDark, {
+    required String title,
+    required String value,
+    bool alignEnd = false,
+  }) {
+    return Column(
+      crossAxisAlignment:
+          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.urbanist(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: isDark ? tWhite.withOpacity(0.6) : tBlack.withOpacity(0.6),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.urbanist(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: isDark ? tWhite : tBlack,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTripDetailsView(Map<String, dynamic> trip, bool isDark) {
+    return Container(
+      height: double.infinity,
+      margin: const EdgeInsets.all(3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isDark ? tWhite.withOpacity(0.05) : tWhite,
+        boxShadow: [
+          BoxShadow(
+            color:
+                isDark
+                    ? Colors.black.withOpacity(0.4)
+                    : Colors.grey.withOpacity(0.2),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row (Title + Close)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "#${trip['tripNumber']} Details",
+                style: GoogleFonts.urbanist(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? tWhite : tBlack,
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    selectedTrip = null;
+                  });
+                },
+                icon: Icon(
+                  CupertinoIcons.xmark_circle_fill,
+                  color: isDark ? tRed : Colors.redAccent,
+                  size: 22,
+                ),
+                tooltip: "Close",
+              ),
+            ],
+          ),
+
+          Divider(
+            color: isDark ? tWhite.withOpacity(0.2) : tBlack.withOpacity(0.1),
+            thickness: 0.5,
+          ),
+
+          // Trip Info Grid (Scrollable section)
+          Expanded(
+            flex: 5,
+            child: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: tTransparent,
+                  border: Border.all(
+                    color: isDark ? tWhite : tBlack,
+                    width: 0.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    GridView.count(
+                      crossAxisCount: 3,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 5,
+                      childAspectRatio: 5,
+                      children: [
+                        _buildDetailTile(
+                          "Vehicle ID",
+                          trip['truckNumber'],
+                          isDark,
+                        ),
+                        _buildDetailTile("IMEI", '189932092392345', isDark),
+                        _buildDetailTile("Status", trip['status'], isDark),
+                        _buildDetailTile(
+                          "Start Time",
+                          trip['startTime'],
+                          isDark,
+                        ),
+                        _buildDetailTile("End Time", trip['endTime'], isDark),
+                        _buildDetailTile(
+                          "Duration (mins)",
+                          trip['durationMins'],
+                          isDark,
+                        ),
+                        _buildDetailTile(
+                          "Distance (km)",
+                          trip['distanceKm'],
+                          isDark,
+                        ),
+                        _buildDetailTile(
+                          "Max Speed (km/h)",
+                          trip['maxSpeed'],
+                          isDark,
+                        ),
+                        _buildDetailTile(
+                          "Avg Speed (km/h)",
+                          trip['avgSpeed'],
+                          isDark,
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      color:
+                          isDark
+                              ? tWhite.withOpacity(0.2)
+                              : tBlack.withOpacity(0.1),
+                      thickness: 0.5,
+                    ),
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/geofence.svg',
+                          width: 16,
+                          height: 16,
+                          color: tGreen,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            'Source: ${trip['source']}',
+                            style: GoogleFonts.urbanist(
+                              fontSize: 13,
+                              color: isDark ? tWhite : tBlack,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/geofence.svg',
+                          width: 16,
+                          height: 16,
+                          color: tRedDark,
+                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Text(
+                            'Destination: ${trip['destination']}',
+                            style: GoogleFonts.urbanist(
+                              fontSize: 13,
+                              color: isDark ? tWhite : tBlack,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Buttons Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              _buildStyledDetailButton(
+                () {},
+                "Download Trip",
+                CupertinoIcons.cloud_download,
+                isDark,
+              ),
+              const SizedBox(width: 10),
+              _buildStyledDetailButton(
+                () => _togglePlayback(),
+                _isPlaying ? "Stop Playback" : "Route Playback",
+                CupertinoIcons.play_arrow_solid,
+                isDark,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Map placeholder
+          Expanded(
+            flex: 5,
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color:
+                    isDark ? tWhite.withOpacity(0.1) : tBlack.withOpacity(0.1),
+              ),
+              padding: const EdgeInsets.all(2),
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter:
+                      _routePoints.isNotEmpty
+                          ? _routePoints[0]
+                          : LatLng(12.9716, 77.5946),
+                  initialZoom: _currentZoom,
+                  onPositionChanged: (position, _) {
+                    _currentZoom = position.zoom ?? _currentZoom;
+                  },
+                ),
+
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        isDark
+                            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                    subdomains: const ['a', 'b', 'c'],
+                    userAgentPackageName: 'com.example.app',
+                  ),
+
+                  // Route polyline
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _routePoints,
+                        strokeWidth: 2,
+                        color: tBlue,
+                      ),
+                    ],
+                  ),
+
+                  // Marker layer: start, end, and moving marker
+                  MarkerLayer(
+                    markers: [
+                      if (_routePoints.isNotEmpty)
+                        Marker(
+                          point: _routePoints.first,
+                          width: 6,
+                          height: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: tGreen,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      if (_routePoints.length > 1)
+                        Marker(
+                          point: _routePoints.last,
+                          width: 6,
+                          height: 6,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: tRedDark,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+
+                      // moving marker (only when there is a position)
+                      if (_movingMarker != null)
+                        Marker(
+                          point: _movingMarker!,
+                          width: 35,
+                          height: 35,
+                          child: Transform.translate(
+                            offset: const Offset(-12, -12),
+                            child: SvgPicture.asset(
+                              'assets/icons/truck1.svg',
+                              width: 25,
+                              height: 25,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Playback progress / info
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Playback: ${_playIndex + 1}/${_routePoints.length}',
+                style: GoogleFonts.urbanist(fontSize: 13),
+              ),
+              Text(
+                trip['source'] ?? '',
+                style: GoogleFonts.urbanist(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Improved info tile for grid layout
+  Widget _buildDetailTile(String label, String value, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.urbanist(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: isDark ? tWhite.withOpacity(0.7) : tBlack.withOpacity(0.7),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: GoogleFonts.urbanist(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? tWhite : tBlack,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Modern elevated action buttons
+  Widget _buildStyledDetailButton(
+    VoidCallback onPressed,
+    String text,
+    IconData icon,
+    bool isDark,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16, color: tBlue),
+      label: Text(
+        text,
+        style: GoogleFonts.urbanist(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: tBlue,
+        ),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isDark ? tBlack : tWhite,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: tBlue, width: 1),
+        ),
+        elevation: 0,
+      ),
+    );
+  }
+}
+
+// ---------------- INLINE DETAIL SCREEN (MOBILE/TABLET) ----------------
+class TripDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> trip;
+  const TripDetailScreen({super.key, required this.trip});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      appBar: AppBar(title: Text('Trip ${trip['tripNumber']} Details')),
+      body: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(CupertinoIcons.cloud_download, size: 16),
+                  label: const Text("Download Trip"),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(CupertinoIcons.play_arrow_solid, size: 16),
+                  label: const Text("Route Playback"),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                color:
+                    isDark ? tWhite.withOpacity(0.08) : tGrey.withOpacity(0.08),
+                alignment: Alignment.center,
+                child: Text(
+                  "Map View Here",
+                  style: GoogleFonts.urbanist(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? tWhite : tBlack,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
