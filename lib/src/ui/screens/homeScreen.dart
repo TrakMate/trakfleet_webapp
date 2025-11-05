@@ -31,11 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
     },
     {'icon': 'icons/device.svg', 'label': 'Devices', 'route': '/home/devices'},
     {'icon': 'icons/trip.svg', 'label': 'Trips', 'route': '/home/trips'},
-    {
-      'icon': 'icons/tracking.svg',
-      'label': 'Tracking',
-      'route': '/home/tracking',
-    },
+    // {
+    //   'icon': 'icons/tracking.svg',
+    //   'label': 'Tracking',
+    //   'route': '/home/tracking',
+    // },
     {'icon': 'icons/reports.svg', 'label': 'reports', 'route': '/home/reports'},
     {'icon': 'icons/alerts.svg', 'label': 'Alerts', 'route': '/home/alerts'},
     {
@@ -49,6 +49,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncMenuWithRoute();
+    });
+  }
+
+  void _syncMenuWithRoute() {
+    final currentPath = GoRouterState.of(context).uri.toString();
+
+    for (final menu in menus) {
+      if (currentPath.startsWith(menu['route']!)) {
+        setState(() {
+          _selectedMenu = menu['label']!;
+        });
+        break;
+      }
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -251,9 +267,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               icon: const Icon(Icons.logout, size: 18),
-                              label: const Text(
+                              label: Text(
                                 "Logout",
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),

@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.urbanist(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: tWhite,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'TrakFleet provides professional telematics solutions to streamline your fleet operations.',
                         style: GoogleFonts.urbanist(
                           fontSize: 18,
-                          color: Colors.white.withOpacity(0.8),
+                          color: tWhite.withOpacity(0.8),
                         ),
                       ),
                       const SizedBox(height: 10),
