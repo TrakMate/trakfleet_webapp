@@ -74,6 +74,14 @@ class AppRouter {
                       return DeviceControlWidget(device: device, initialTab: 1);
                     },
                   ),
+                  GoRoute(
+                    path: 'configuration',
+                    name: 'deviceConfiguration',
+                    builder: (context, state) {
+                      final device = state.extra as Map<String, dynamic>;
+                      return DeviceControlWidget(device: device, initialTab: 2);
+                    },
+                  ),
                 ],
               ),
             ],
@@ -87,6 +95,42 @@ class AppRouter {
           //   path: '/home/tracking',
           //   name: 'tracking',
           //   builder: (context, state) => const TrackingScreen(),
+          // ),
+
+          // GoRoute(
+          //   path: '/home/reports',
+          //   name: 'reports',
+          //   builder: (context, state) => const ReportsScreen(),
+          //   routes: [
+          //     GoRoute(
+          //       path: 'devices',
+          //       name: 'reportsDevices',
+          //       builder:
+          //           (context, state) =>
+          //               const ReportsScreen(), // Replace with your ReportsDevicesScreen if separate
+          //     ),
+          //     GoRoute(
+          //       path: 'trips',
+          //       name: 'reportsTrips',
+          //       builder:
+          //           (context, state) =>
+          //               const ReportsScreen(), // Replace with your ReportsTripsScreen
+          //     ),
+          //     GoRoute(
+          //       path: 'alerts',
+          //       name: 'reportsAlerts',
+          //       builder:
+          //           (context, state) =>
+          //               const ReportsScreen(), // Replace if unique
+          //     ),
+          //     GoRoute(
+          //       path: 'stats',
+          //       name: 'reportsStats',
+          //       builder:
+          //           (context, state) =>
+          //               const ReportsScreen(), // Replace if unique
+          //     ),
+          //   ],
           // ),
           GoRoute(
             path: '/home/reports',

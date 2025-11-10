@@ -224,6 +224,12 @@
       "languageVersion": "3.7"
     },
     {
+      "name": "graphic",
+      "rootUri": "file:///C:/Users/ssk/AppData/Local/Pub/Cache/hosted/pub.dev/graphic-2.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
+    },
+    {
       "name": "html",
       "rootUri": "file:///C:/Users/ssk/AppData/Local/Pub/Cache/hosted/pub.dev/html-0.15.6",
       "packageUri": "lib/",
@@ -336,6 +342,12 @@
       "rootUri": "file:///C:/Users/ssk/AppData/Local/Pub/Cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "path_drawing",
+      "rootUri": "file:///C:/Users/ssk/AppData/Local/Pub/Cache/hosted/pub.dev/path_drawing-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "path_parsing",
@@ -596,7 +608,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-11-02T06:12:10.630562Z",
+  "generated": "2025-11-10T04:22:15.685373Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/Users/ssk/flutter",

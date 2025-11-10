@@ -10,7 +10,9 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
+import '../widgets/charts/alertsChart.dart';
 import '../widgets/charts/tripsChart.dart';
+import '../widgets/charts/vehicleUtilizationChart.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -37,7 +39,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {'label': 'Stopped', 'color': tRed, 'percent': 40.0},
     {'label': 'Idle', 'color': tOrange1, 'percent': 30.0},
     {'label': 'Disconnected', 'color': tGrey, 'percent': 20.0},
-    {'label': 'Non-Coverage', 'color': Colors.purple, 'percent': 20.0},
   ];
 
   List<Map<String, dynamic>> _getStatusWithCounts() {
@@ -495,7 +496,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 3,
                       child: Container(
-                        height: 210,
+                        height: 190,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -534,7 +535,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       flex: 7,
                       child: Container(
                         // width: MediaQuery.of(context).size.width * 0.5,
-                        height: 210,
+                        height: 190,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -548,7 +549,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -576,7 +580,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       flex: 3,
                       child: Container(
                         // width: double.infinity,
-                        height: 210,
+                        height: 190,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -617,7 +621,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 3,
                       child: Container(
-                        height: 325,
+                        height: 300,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -654,7 +658,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 7,
                       child: Container(
-                        height: 325,
+                        height: 300,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
@@ -717,7 +721,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 3,
                       child: Container(
-                        height: 325,
+                        height: 300,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -782,6 +786,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         padding: const EdgeInsets.all(15),
+                        child: VehicleUtilizationChart(),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -803,6 +808,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         padding: const EdgeInsets.all(15),
+                        child: AlertsChart(),
                       ),
                     ),
                   ],
@@ -1004,7 +1010,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildTotalVehiclesInfo(isDark),
-        _buildIconCircle('icons/vehicle.svg', tBlue),
+        _buildIconCircle('icons/vehicle1.svg', tBlue),
       ],
     );
   }
@@ -1145,7 +1151,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     width: 60,
     height: 60,
     decoration: BoxDecoration(
-      color: color.withOpacity(0.25),
+      // color: color.withOpacity(0.25),
+      gradient: SweepGradient(
+        colors: [color.withOpacity(0.6), color.withOpacity(0.2)],
+        // startAngle: 3.14 * 1.25,
+        // endAngle: 3.14 * 2.25,
+      ),
       shape: BoxShape.circle,
     ),
     padding: const EdgeInsets.all(15),
@@ -1156,17 +1167,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildAnyValuesColumn(
-          iconPath: 'icons/vehicle.svg',
+        _buildVehicleValuesColumn(
+          iconPath: 'icons/vehicle1.svg',
           iconColor: tGreen,
           title: 'Active Vehicles',
           value: '900',
+          percentage: '65%',
         ),
-        _buildAnyValuesColumn(
-          iconPath: 'icons/vehicle.svg',
+        _buildVehicleValuesColumn(
+          iconPath: 'icons/vehicle1.svg',
           iconColor: tRedDark,
           title: 'Inactive Vehicles',
           value: '450',
+          percentage: '35%',
         ),
       ],
     );
@@ -1179,13 +1192,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _buildAnyValuesColumn(
           iconPath: 'icons/alerts.svg',
           iconColor: tRedDark,
-          title: 'Crtitical Alerts',
+          title: 'Crtitical',
           value: '195',
         ),
         _buildAnyValuesColumn(
           iconPath: 'icons/alerts.svg',
           iconColor: tBlue1,
-          title: 'Non-Critical Alerts',
+          title: 'Non-Critical',
+          value: '380',
+        ),
+        _buildAnyValuesColumn(
+          iconPath: 'icons/alerts.svg',
+          iconColor: tOrange1,
+          title: 'Flagged',
           value: '380',
         ),
       ],
@@ -1194,6 +1213,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTripsBottomSection() {
     final List<Map<String, dynamic>> tripStats = [
+      {
+        'iconPath': 'icons/completed.svg',
+        'iconColor': tBlue,
+        'title': 'Completed Trips',
+        'value': '45,300',
+      },
+      {
+        'iconPath': 'icons/ongoing.svg',
+        'iconColor': tOrange1,
+        'title': 'Ongoing Trips',
+        'value': '75,200',
+      },
       {
         'iconPath': 'icons/distance.svg',
         'iconColor': tGreen,
@@ -1206,18 +1237,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': 'Consumed Hours',
         'value': '3,450',
       },
-      {
-        'iconPath': 'icons/completed.svg',
-        'iconColor': tBlue,
-        'title': 'Completed Trips',
-        'value': '45,300',
-      },
-      {
-        'iconPath': 'icons/battery.svg',
-        'iconColor': tOrange1,
-        'title': 'Power (kWh)',
-        'value': '75,200',
-      },
     ];
 
     return GridView.count(
@@ -1225,8 +1244,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       shrinkWrap: true, // so it fits inside Column
       crossAxisCount: 2, // 2 items per row
       crossAxisSpacing: 10,
-      mainAxisSpacing: 0,
-      childAspectRatio: 1.8, // adjust spacing shape
+      mainAxisSpacing: 20,
+      childAspectRatio: 2.1, // adjust spacing shape
       children:
           tripStats.map((stat) {
             return _buildAnyValuesColumn(
@@ -1236,6 +1255,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
               value: stat['value'],
             );
           }).toList(),
+    );
+  }
+
+  Widget _buildVehicleValuesColumn({
+    required String iconPath,
+    required Color iconColor,
+    required String title,
+    required String value,
+    required String percentage,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+            const SizedBox(width: 5),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$value ',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 13,
+                      color: isDark ? tWhite : tBlack,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '($percentage)',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 13,
+                      color: iconColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          style: GoogleFonts.urbanist(
+            fontSize: 12,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1250,21 +1322,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+        Row(
+          children: [
+            SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+            const SizedBox(width: 5),
+            Text(
+              value,
+              style: GoogleFonts.urbanist(
+                fontSize: 13,
+                color: isDark ? tWhite : tBlack,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 6),
         Text(
           title,
           style: GoogleFonts.urbanist(
-            fontSize: 14,
-            color: isDark ? tWhite : tBlack,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: GoogleFonts.urbanist(
-            fontSize: 13,
+            fontSize: 12,
             color: isDark ? tWhite : tBlack,
             fontWeight: FontWeight.w500,
           ),
@@ -1732,7 +1808,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: getAlertColor(alert['alertType']!),
+                          // color: getAlertColor(alert['alertType']!),
+                          gradient: SweepGradient(
+                            colors: [
+                              getAlertColor(alert['alertType']!),
+                              getAlertColor(
+                                alert['alertType']!,
+                              ).withOpacity(0.5),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
