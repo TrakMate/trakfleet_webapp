@@ -28,11 +28,41 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
   late int selectedIndex;
   DateTime selectedDate = DateTime.now();
 
+  Map<String, dynamic>? deviceData;
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
     selectedIndex = widget.initialTab;
+    // _initDeviceData();
   }
+
+  // Future<void> _initDeviceData() async {
+  //   // If we already have a full device object, just assign it
+  //   if (widget.device.isNotEmpty && widget.device.keys.length > 1) {
+  //     setState(() => deviceData = widget.device);
+  //     LoggerUtil.getInstance.print(
+  //       'Loaded device from extra: ${widget.device['imei']}',
+  //     );
+  //   }
+  //   // Else fetch by IMEI
+  //   else if (widget.device['imei'] != null) {
+  //     setState(() => isLoading = true);
+  //     final imei = widget.device['imei'];
+  //     try {
+  //       final fetchedDevice = await DeviceService.fetchDeviceByImei(imei);
+  //       setState(() {
+  //         deviceData = fetchedDevice;
+  //         isLoading = false;
+  //       });
+  //       LoggerUtil.getInstance.print('Fetched full device info for $imei');
+  //     } catch (e) {
+  //       LoggerUtil.getInstance.print('Error fetching device info: $e');
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

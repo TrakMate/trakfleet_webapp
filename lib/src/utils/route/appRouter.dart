@@ -49,12 +49,15 @@ class AppRouter {
                 path: ':imei',
                 name: 'deviceDetail',
                 builder: (context, state) {
-                  // Get the full device object passed from the previous screen
-                  final device = state.extra as Map<String, dynamic>;
-                  final imei = state.pathParameters['imei']!;
+                  final device =
+                      state.extra as Map<String, dynamic>?; // may be null
+                  final imei = state.pathParameters['imei'] ?? 'Unknown IMEI';
+
                   return DeviceControlWidget(
-                    device: device,
-                    initialTab: 0, // default tab (e.g., General)
+                    device:
+                        device ??
+                        {'imei': imei}, // fallback if direct navigation
+                    initialTab: 0,
                   );
                 },
                 routes: [
@@ -62,24 +65,39 @@ class AppRouter {
                     path: 'overview',
                     name: 'deviceGeneral',
                     builder: (context, state) {
-                      final device = state.extra as Map<String, dynamic>;
-                      return DeviceControlWidget(device: device, initialTab: 0);
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 0,
+                      );
                     },
                   ),
                   GoRoute(
                     path: 'diagnostics',
                     name: 'deviceDiagnostics',
                     builder: (context, state) {
-                      final device = state.extra as Map<String, dynamic>;
-                      return DeviceControlWidget(device: device, initialTab: 1);
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 1,
+                      );
                     },
                   ),
                   GoRoute(
                     path: 'configuration',
                     name: 'deviceConfiguration',
                     builder: (context, state) {
-                      final device = state.extra as Map<String, dynamic>;
-                      return DeviceControlWidget(device: device, initialTab: 2);
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 2,
+                      );
                     },
                   ),
                 ],
