@@ -15,6 +15,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
+      GoRoute(path: '/', redirect: (_, __) => '/home/dashboard'),
       GoRoute(
         path: '/',
         name: 'loading',
@@ -41,20 +42,28 @@ class AppRouter {
           //   builder: (context, state) => const DevicesScreen(),
           // ),
           GoRoute(
+            // path: '/home/devices',
+            // name: 'devices',
+            // builder: (context, state) => DevicesScreen(),
             path: '/home/devices',
-            name: 'devices',
-            builder: (context, state) => DevicesScreen(),
+            builder: (context, state) {
+              final status = state.uri.queryParameters['status'];
+              return DevicesScreen(filterStatus: status);
+            },
             routes: [
               GoRoute(
                 path: ':imei',
                 name: 'deviceDetail',
                 builder: (context, state) {
-                  // Get the full device object passed from the previous screen
-                  final device = state.extra as Map<String, dynamic>;
-                  final imei = state.pathParameters['imei']!;
+                  final device =
+                      state.extra as Map<String, dynamic>?; // may be null
+                  final imei = state.pathParameters['imei'] ?? 'Unknown IMEI';
+
                   return DeviceControlWidget(
-                    device: device,
-                    initialTab: 0, // default tab (e.g., General)
+                    device:
+                        device ??
+                        {'imei': imei}, // fallback if direct navigation
+                    initialTab: 0,
                   );
                 },
                 routes: [
@@ -62,16 +71,39 @@ class AppRouter {
                     path: 'overview',
                     name: 'deviceGeneral',
                     builder: (context, state) {
-                      final device = state.extra as Map<String, dynamic>;
-                      return DeviceControlWidget(device: device, initialTab: 0);
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 0,
+                      );
                     },
                   ),
                   GoRoute(
                     path: 'diagnostics',
                     name: 'deviceDiagnostics',
                     builder: (context, state) {
-                      final device = state.extra as Map<String, dynamic>;
-                      return DeviceControlWidget(device: device, initialTab: 1);
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 1,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: 'configuration',
+                    name: 'deviceConfiguration',
+                    builder: (context, state) {
+                      final device = state.extra as Map<String, dynamic>?;
+                      final imei =
+                          state.pathParameters['imei'] ?? 'Unknown IMEI';
+                      return DeviceControlWidget(
+                        device: device ?? {'imei': imei},
+                        initialTab: 2,
+                      );
                     },
                   ),
                 ],
@@ -83,6 +115,7 @@ class AppRouter {
             name: 'trips',
             builder: (context, state) => const TripsScreen(),
           ),
+
           // GoRoute(
           //   path: '/home/tracking',
           //   name: 'tracking',

@@ -463,11 +463,14 @@ class _TripsScreenState extends State<TripsScreen> {
                             final trip = paginatedTrips[index];
                             return GestureDetector(
                               onTap: () {
-                                if (trip['status'] == 'Completed') {
-                                  setState(() {
-                                    selectedTrip = trip;
-                                  });
-                                }
+                                // if (trip['status'] == 'Completed') {
+                                //   setState(() {
+                                //     selectedTrip = trip;
+                                //   });
+                                // }
+                                setState(() {
+                                  selectedTrip = trip;
+                                });
                               },
                               child: buildTripCard(
                                 isDark: isDark,
@@ -489,36 +492,7 @@ class _TripsScreenState extends State<TripsScreen> {
                       ),
 
                       // Pagination controls
-                      if (totalPages > 1)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_back_ios_new,
-                                  size: 18,
-                                ),
-                                onPressed: _previousPage,
-                              ),
-                              Text(
-                                "Page $currentPage of $totalPages",
-                                style: GoogleFonts.urbanist(
-                                  fontSize: 14,
-                                  color: isDark ? tWhite : tBlack,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 18,
-                                ),
-                                onPressed: _nextPage,
-                              ),
-                            ],
-                          ),
-                        ),
+                      if (totalPages > 1) _buildPaginationControls(isDark),
                     ],
                   ),
                 ),
@@ -543,6 +517,151 @@ class _TripsScreenState extends State<TripsScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildPaginationControls(bool isDark) {
+    const int visiblePageCount = 5;
+
+    // Determine start and end of visible window
+    int startPage =
+        ((currentPage - 1) ~/ visiblePageCount) * visiblePageCount + 1;
+    int endPage = (startPage + visiblePageCount - 1).clamp(1, totalPages);
+
+    final pageButtons = <Widget>[];
+
+    for (int pageNum = startPage; pageNum <= endPage; pageNum++) {
+      final isSelected = pageNum == currentPage;
+
+      pageButtons.add(
+        GestureDetector(
+          onTap: () {
+            if (!mounted) return;
+            setState(() => currentPage = pageNum);
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? tBlue : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color:
+                    isSelected
+                        ? tBlue
+                        : (isDark ? Colors.white54 : Colors.black54),
+              ),
+            ),
+            child: Text(
+              '$pageNum',
+              style: GoogleFonts.urbanist(
+                color:
+                    isSelected
+                        ? tWhite
+                        : (isDark
+                            ? tWhite.withOpacity(0.8)
+                            : tBlack.withOpacity(0.8)),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final controller = TextEditingController();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          /// Previous Button
+          IconButton(
+            icon: Icon(
+              Icons.chevron_left,
+              color: isDark ? tWhite : tBlack,
+              size: 22,
+            ),
+            onPressed: () {
+              if (currentPage > 1) {
+                setState(() => currentPage--);
+              }
+            },
+          ),
+
+          /// Page Buttons (windowed 5)
+          Row(children: pageButtons),
+
+          /// Next Button
+          IconButton(
+            icon: Icon(
+              Icons.chevron_right,
+              color: isDark ? tWhite : tBlack,
+              size: 22,
+            ),
+            onPressed: () {
+              if (currentPage < totalPages) {
+                setState(() => currentPage++);
+              }
+            },
+          ),
+
+          const SizedBox(width: 16),
+
+          /// Page Input Box
+          SizedBox(
+            width: 70,
+            height: 32,
+            child: TextField(
+              controller: controller,
+              style: GoogleFonts.urbanist(
+                fontSize: 13,
+                color: isDark ? tWhite : tBlack,
+              ),
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Page',
+                hintStyle: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark ? tWhite : tBlack,
+                    width: 0.8,
+                  ),
+                ),
+              ),
+              onSubmitted: (value) {
+                final page = int.tryParse(value);
+                if (page != null &&
+                    page >= 1 &&
+                    page <= totalPages &&
+                    mounted) {
+                  setState(() => currentPage = page);
+                }
+              },
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          /// Show visible range (e.g., "1–5 of 20")
+          Text(
+            '$startPage–$endPage of $totalPages',
+            style: GoogleFonts.urbanist(
+              fontSize: 13,
+              color: isDark ? tWhite : tBlack,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -684,7 +803,10 @@ class _TripsScreenState extends State<TripsScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         decoration: BoxDecoration(
-                          color: statusColor,
+                          // color: statusColor,
+                          gradient: SweepGradient(
+                            colors: [statusColor, statusColor.withOpacity(0.6)],
+                          ),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(5),
                             topRight: Radius.circular(5),
@@ -725,7 +847,10 @@ class _TripsScreenState extends State<TripsScreen> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor,
+                      // color: statusColor,
+                      gradient: SweepGradient(
+                        colors: [statusColor, statusColor.withOpacity(0.6)],
+                      ),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,41 +17,48 @@ class _TripsChartState extends State<TripsChart> {
   String _viewMode = "weekly";
   late List<Map<String, dynamic>> chartData;
   int? touchedIndex;
+  double? touchedY;
+
   @override
   void initState() {
     super.initState();
     _generateDummyData();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   setState(() => touchedIndex = 0); // auto show on first group
+    // });
   }
 
   void _generateDummyData() {
+    final now = DateTime.now();
+
     if (_viewMode == "weekly") {
-      chartData = [
-        {"label": "Mon", "trips": 12, "distance": 45, "hours": 4.2},
-        {"label": "Tue", "trips": 9, "distance": 38, "hours": 3.5},
-        {"label": "Wed", "trips": 15, "distance": 52, "hours": 5.0},
-        {"label": "Thu", "trips": 8, "distance": 30, "hours": 2.9},
-        {"label": "Fri", "trips": 13, "distance": 48, "hours": 4.6},
-        {"label": "Sat", "trips": 10, "distance": 40, "hours": 3.8},
-        {"label": "Sun", "trips": 6, "distance": 22, "hours": 2.0},
-      ];
+      // Generate last 7 days (today + past 6 days)
+      chartData = List.generate(7, (i) {
+        final date = now.subtract(Duration(days: 6 - i));
+        final dayLabel =
+            ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.weekday % 7];
+
+        return {
+          "label": dayLabel,
+          "trips": 5 + i * 2 + (date.day % 3),
+          "distance": 20 + i * 5 + (date.day % 10),
+          "hours": 2.0 + (i * 0.5),
+        };
+      });
     } else if (_viewMode == "monthly") {
-      chartData = List.generate(
-        6,
-        (i) => {
-          "label": "W${i + 1}",
-          "trips": 40 + i * 5,
-          "distance": 180 + i * 20,
-          "hours": 18.5 + i * 2.0,
-        },
-      );
-    } else {
-      chartData = [
-        {"label": "2021", "trips": 480, "distance": 1900, "hours": 200},
-        {"label": "2022", "trips": 520, "distance": 2150, "hours": 230},
-        {"label": "2023", "trips": 600, "distance": 2400, "hours": 260},
-        {"label": "2024", "trips": 670, "distance": 2800, "hours": 290},
-        {"label": "2025", "trips": 710, "distance": 3000, "hours": 320},
-      ];
+      // Generate last 4 weeks (current week + 3 previous)
+      chartData =
+          List.generate(4, (i) {
+            final startOfWeek = now.subtract(Duration(days: i * 7));
+            final weekNumber =
+                ((startOfWeek.day - startOfWeek.weekday + 10) / 7).floor();
+            return {
+              "label": "W${weekNumber}",
+              "trips": 40 + i * 8,
+              "distance": 150 + i * 20,
+              "hours": 18.0 + i * 1.5,
+            };
+          }).reversed.toList();
     }
   }
 
@@ -74,8 +83,8 @@ class _TripsChartState extends State<TripsChart> {
             Text(
               'Trips Overview',
               style: GoogleFonts.urbanist(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
                 color: isDark ? tWhite : tBlack,
               ),
             ),
@@ -90,7 +99,6 @@ class _TripsChartState extends State<TripsChart> {
                 children: [
                   _buildToggleButton("Weekly"),
                   _buildToggleButton("Monthly"),
-                  _buildToggleButton("Yearly"),
                 ],
               ),
             ),
@@ -101,159 +109,188 @@ class _TripsChartState extends State<TripsChart> {
         // Chart
         SizedBox(
           height: 190,
-          child: BarChart(
-            BarChartData(
-              gridData: FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              alignment: BarChartAlignment.spaceAround,
-              titlesData: FlTitlesData(
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 28,
-                    getTitlesWidget: (value, meta) {
-                      if (value.toInt() < chartData.length) {
-                        return Text(
-                          chartData[value.toInt()]["label"],
-                          style: GoogleFonts.urbanist(
-                            fontSize: 11,
-                            color:
-                                isDark
-                                    ? Colors.white70
-                                    : Colors.black.withOpacity(0.7),
+          child: Stack(
+            children: [
+              BarChart(
+                BarChartData(
+                  gridData: FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  alignment: BarChartAlignment.spaceAround,
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        getTitlesWidget: (value, meta) {
+                          if (value.toInt() < chartData.length) {
+                            return Text(
+                              chartData[value.toInt()]["label"],
+                              style: GoogleFonts.urbanist(
+                                fontSize: 11,
+                                color:
+                                    isDark
+                                        ? Colors.white70
+                                        : Colors.black.withOpacity(0.7),
+                              ),
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                  ),
+
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    handleBuiltInTouches: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      tooltipRoundedRadius: 10,
+                      tooltipPadding: const EdgeInsets.all(10),
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      getTooltipColor: (group) => isDark ? tWhite : tBlack,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final data = chartData[group.x.toInt()];
+                        final legendColors = [tBlue, tGreen, tOrange1];
+                        final legendLabels = ["Trips", "Distance", "Hours"];
+                        final legendValues = [
+                          "${data["trips"]}",
+                          "${data["distance"]} km",
+                          "${data["hours"]} h",
+                        ];
+
+                        final spans = <TextSpan>[
+                          TextSpan(
+                            text: "${data["label"]}\n",
+                            style: GoogleFonts.urbanist(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? tBlack : tWhite,
+                            ),
                           ),
+                        ];
+
+                        for (int i = 0; i < legendLabels.length; i++) {
+                          spans.add(
+                            TextSpan(
+                              text: "● ",
+                              style: TextStyle(
+                                color: legendColors[i],
+                                fontSize: 12,
+                              ),
+                            ),
+                          );
+                          spans.add(
+                            TextSpan(
+                              text: "${legendLabels[i]}: ${legendValues[i]}\n",
+                              style: GoogleFonts.urbanist(
+                                color: isDark ? tBlack : tWhite,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return BarTooltipItem(
+                          '',
+                          const TextStyle(),
+                          children: spans,
+                          textAlign: TextAlign.start,
                         );
+                      },
+                    ),
+
+                    touchCallback: (event, response) {
+                      if (!event.isInterestedForInteractions ||
+                          response == null ||
+                          response.spot == null) {
+                        setState(() {
+                          touchedIndex = null;
+                          touchedY = null;
+                        });
+                        return;
                       }
-                      return const SizedBox();
+
+                      setState(() {
+                        touchedIndex = response.spot!.touchedBarGroupIndex;
+                        touchedY = response.spot!.touchedRodData.toY;
+                      });
                     },
                   ),
-                ),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-              ),
 
-              barTouchData: BarTouchData(
-                enabled: true,
-                touchTooltipData: BarTouchTooltipData(
-                  tooltipRoundedRadius: 10,
-                  tooltipPadding: const EdgeInsets.all(10),
-                  fitInsideHorizontally: true,
-                  fitInsideVertically: true,
+                  extraLinesData: ExtraLinesData(
+                    verticalLines:
+                        touchedIndex != null
+                            ? [
+                              VerticalLine(
+                                x: touchedIndex!.toDouble(),
+                                color: isDark ? Colors.white38 : Colors.black38,
+                                strokeWidth: 1,
+                                dashArray: [5, 4],
+                              ),
+                            ]
+                            : [],
+                  ),
 
-                  // Custom background color via new API
-                  getTooltipColor: (group) {
-                    return isDark ? tWhite : tBlack;
-                  },
-
-                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    final data = chartData[group.x.toInt()];
-
-                    // define legend items
-                    final legendColors = [tBlue, tGreen, tOrange1];
-                    final legendLabels = ["Trips", "Distance", "Hours"];
-                    final legendValues = [
-                      "${data["trips"]}",
-                      "${data["distance"]} km",
-                      "${data["hours"]} h",
-                    ];
-
-                    // build tooltip text with color dots
-                    final spans = <TextSpan>[
-                      TextSpan(
-                        text: "${data["label"]}\n",
-                        style: GoogleFonts.urbanist(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? tBlack : tWhite,
-                        ),
-                      ),
-                    ];
-
-                    for (int i = 0; i < legendLabels.length; i++) {
-                      spans.add(
-                        TextSpan(
-                          text: "● ",
-                          style: TextStyle(
-                            color: legendColors[i],
-                            fontSize: 14, // slightly larger dot
-                          ),
-                        ),
-                      );
-                      spans.add(
-                        TextSpan(
-                          text: "${legendLabels[i]}: ${legendValues[i]}\n",
-                          style: GoogleFonts.urbanist(
-                            color: isDark ? tBlack : tWhite,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      );
-                    }
-
-                    return BarTooltipItem(
-                      '', // base text
-                      const TextStyle(), // base style
-                      children: spans, // rich children
-                      textAlign: TextAlign.start,
-                    );
-                  },
+                  barGroups:
+                      chartData.asMap().entries.map((entry) {
+                        final i = entry.key;
+                        final item = entry.value;
+                        return BarChartGroupData(
+                          x: i,
+                          barsSpace: 5,
+                          showingTooltipIndicators:
+                              touchedIndex == i ? [0, 1, 2] : [],
+                          barRods: [
+                            BarChartRodData(
+                              toY: item["trips"].toDouble(),
+                              color: tBlue.withOpacity(0.9),
+                              width: 8,
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            BarChartRodData(
+                              toY: item["distance"].toDouble() / 5,
+                              color: tGreen.withOpacity(0.9),
+                              width: 8,
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                            BarChartRodData(
+                              toY: item["hours"].toDouble() * 10,
+                              color: tOrange1.withOpacity(0.9),
+                              width: 8,
+                              borderRadius: BorderRadius.circular(0),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                 ),
               ),
 
-              extraLinesData: ExtraLinesData(
-                verticalLines:
-                    touchedIndex != null
-                        ? [
-                          VerticalLine(
-                            x: touchedIndex!.toDouble(),
-                            color: isDark ? Colors.white38 : Colors.black38,
-                            strokeWidth: 1.2,
-                            dashArray: [5, 4],
-                          ),
-                        ]
-                        : [],
-              ),
-
-              barGroups:
-                  chartData.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final item = entry.value;
-                    return BarChartGroupData(
-                      x: i,
-                      barsSpace: 5,
-                      showingTooltipIndicators:
-                          touchedIndex == i ? [0, 1, 2] : [],
-                      barRods: [
-                        BarChartRodData(
-                          toY: item["trips"].toDouble(),
-                          color: tBlue.withOpacity(0.9),
-                          width: 8,
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        BarChartRodData(
-                          toY: item["distance"].toDouble() / 5,
-                          color: tGreen.withOpacity(0.9),
-                          width: 8,
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                        BarChartRodData(
-                          toY: item["hours"].toDouble() * 10,
-                          color: tOrange1.withOpacity(0.9),
-                          width: 8,
-                          borderRadius: BorderRadius.circular(0),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-            ),
+              //Add the custom painter overlay
+              if (touchedIndex != null && touchedY != null)
+                IgnorePointer(
+                  ignoring: true,
+                  child: CustomPaint(
+                    size: Size.infinite,
+                    painter: CrosshairPainter(
+                      xIndex: touchedIndex!,
+                      yValue: touchedY!,
+                      chartDataLength: chartData.length,
+                      isDark: isDark,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
 
@@ -305,6 +342,89 @@ class _TripsChartState extends State<TripsChart> {
       ),
     );
   }
+}
+
+class CrosshairPainter extends CustomPainter {
+  final int xIndex;
+  final double yValue;
+  final int chartDataLength;
+  final bool isDark;
+
+  CrosshairPainter({
+    required this.xIndex,
+    required this.yValue,
+    required this.chartDataLength,
+    required this.isDark,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = isDark ? tWhite : tBlack
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+
+    const dashArray = [5, 4];
+
+    // Convert index to pixel position horizontally
+    final double spacing = size.width / (chartDataLength + 1);
+    final double xPos = spacing * (xIndex + 1);
+
+    // Convert Y value (0–max) to pixel Y coordinate (bottom-up)
+    // For simplicity, assume 0–100 max range; adjust if your data scale differs
+    final double yPos = size.height * (1 - (yValue / 100).clamp(0, 1));
+
+    // Draw dashed vertical line
+    _drawDashedLine(
+      canvas,
+      Offset(xPos, 0),
+      Offset(xPos, size.height),
+      paint,
+      dashArray,
+    );
+
+    // Draw dashed horizontal line
+    _drawDashedLine(
+      canvas,
+      Offset(0, yPos),
+      Offset(size.width, yPos),
+      paint,
+      dashArray,
+    );
+  }
+
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset p1,
+    Offset p2,
+    Paint paint,
+    List<int> dashArray,
+  ) {
+    const double dashWidth = 5;
+    const double dashSpace = 4;
+    final double dx = p2.dx - p1.dx;
+    final double dy = p2.dy - p1.dy;
+    final double distance = sqrt(dx * dx + dy * dy);
+    final double angle = atan2(dy, dx);
+    double start = 0;
+    final path = Path();
+
+    while (start < distance) {
+      final x1 = p1.dx + cos(angle) * start;
+      final y1 = p1.dy + sin(angle) * start;
+      start += dashWidth;
+      final x2 = p1.dx + cos(angle) * min(start, distance);
+      final y2 = p1.dy + sin(angle) * min(start, distance);
+      path.moveTo(x1, y1);
+      path.lineTo(x2, y2);
+      start += dashSpace;
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 // Legend item

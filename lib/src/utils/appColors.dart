@@ -36,6 +36,12 @@ const tRedGradient2 = LinearGradient(
   end: Alignment.bottomRight,
 );
 
+const tRedGradient3 = LinearGradient(
+  colors: [Color(0xFFFA0B0B), Color(0xFFFF0055)],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+);
+
 const tBlue = Color(0xFF184bff);
 const tBlue1 = Color(0xFF0075fd);
 const tBlue2 = Color(0xFF00057D);
@@ -104,6 +110,12 @@ const tGreenGradient1 = LinearGradient(
   colors: [Color(0xFF66CC00), Colors.transparent],
   begin: Alignment.topCenter,
   end: Alignment.bottomCenter,
+);
+
+const tGreenGradient2 = LinearGradient(
+  colors: [Color(0xFF006611), Color(0xFF66CC11)],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
 );
 
 const tOrange = Color(0xFFFFB800);

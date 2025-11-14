@@ -54,17 +54,37 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // void _syncMenuWithRoute() {
+  //   final currentPath = GoRouterState.of(context).uri.toString();
+
+  //   for (final menu in menus) {
+  //     if (currentPath.startsWith(menu['route']!)) {
+  //       setState(() {
+  //         _selectedMenu = menu['label']!;
+  //       });
+  //       break;
+  //     }
+  //   }
+  // }
+
   void _syncMenuWithRoute() {
-    final currentPath = GoRouterState.of(context).uri.toString();
+    final uri = GoRouterState.of(context).uri;
+    final currentPath = uri.path; // ✅ only path, no query params
 
     for (final menu in menus) {
       if (currentPath.startsWith(menu['route']!)) {
         setState(() {
           _selectedMenu = menu['label']!;
         });
-        break;
+        return;
       }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncMenuWithRoute();
   }
 
   Future<void> _loadUserData() async {

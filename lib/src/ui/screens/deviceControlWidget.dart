@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import '../../utils/appColors.dart';
 import '../../utils/appLogger.dart';
 import '../../utils/appResponsive.dart';
+import 'deviceConfigurationInfoScreen.dart';
 import 'deviceDiagnosticsInfoScreen.dart';
 import 'deviceGeneralInfoScreen.dart';
 
@@ -24,12 +26,43 @@ class DeviceControlWidget extends StatefulWidget {
 
 class _DeviceControlWidgetState extends State<DeviceControlWidget> {
   late int selectedIndex;
+  DateTime selectedDate = DateTime.now();
+
+  Map<String, dynamic>? deviceData;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     selectedIndex = widget.initialTab;
+    // _initDeviceData();
   }
+
+  // Future<void> _initDeviceData() async {
+  //   // If we already have a full device object, just assign it
+  //   if (widget.device.isNotEmpty && widget.device.keys.length > 1) {
+  //     setState(() => deviceData = widget.device);
+  //     LoggerUtil.getInstance.print(
+  //       'Loaded device from extra: ${widget.device['imei']}',
+  //     );
+  //   }
+  //   // Else fetch by IMEI
+  //   else if (widget.device['imei'] != null) {
+  //     setState(() => isLoading = true);
+  //     final imei = widget.device['imei'];
+  //     try {
+  //       final fetchedDevice = await DeviceService.fetchDeviceByImei(imei);
+  //       setState(() {
+  //         deviceData = fetchedDevice;
+  //         isLoading = false;
+  //       });
+  //       LoggerUtil.getInstance.print('Fetched full device info for $imei');
+  //     } catch (e) {
+  //       LoggerUtil.getInstance.print('Error fetching device info: $e');
+  //       setState(() => isLoading = false);
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -49,52 +82,86 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Tab Container
-        Container(
-          width: 350,
-          height: 40,
-          decoration: BoxDecoration(
-            border: Border.all(color: isDark ? tWhite : tBlack, width: 0.6),
-          ),
-          padding: const EdgeInsets.all(5),
-          child: Row(
-            children: [
-              _buildTabButton(
-                "Overview",
-                0,
-                selectedIndex,
-                (i) {
-                  setState(() => selectedIndex = i);
-                  context.go('/home/devices/${widget.device['imei']}/overview');
-                },
-                context,
-                isDark,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 450,
+              height: 40,
+              decoration: BoxDecoration(
+                border: Border.all(color: isDark ? tWhite : tBlack, width: 0.6),
               ),
-              _buildTabButton(
-                "Diagnostics",
-                1,
-                selectedIndex,
-                (i) {
-                  setState(() => selectedIndex = i);
-                  context.go(
-                    '/home/devices/${widget.device['imei']}/diagnostics',
-                  );
-                },
-                context,
-                isDark,
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                children: [
+                  _buildTabButton(
+                    "Overview",
+                    0,
+                    selectedIndex,
+                    (i) {
+                      setState(() => selectedIndex = i);
+                      context.go(
+                        '/home/devices/${widget.device['imei']}/overview',
+                        extra: widget.device,
+                      );
+                    },
+                    context,
+                    isDark,
+                  ),
+                  _buildTabButton(
+                    "Diagnostics",
+                    1,
+                    selectedIndex,
+                    (i) {
+                      setState(() => selectedIndex = i);
+                      context.go(
+                        '/home/devices/${widget.device['imei']}/diagnostics',
+                        extra: widget.device,
+                      );
+                    },
+                    context,
+                    isDark,
+                  ),
+                  _buildTabButton(
+                    "Configuration",
+                    2,
+                    selectedIndex,
+                    (i) {
+                      setState(() => selectedIndex = i);
+                      context.go(
+                        '/home/devices/${widget.device['imei']}/configuration',
+                        extra: widget.device,
+                      );
+                    },
+                    context,
+                    isDark,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Row(
+              children: [
+                _buildLabelBox("Filter By Date", tBlue, isDark),
+                const SizedBox(width: 5),
+                _buildDynamicDatePicker(isDark),
+              ],
+            ),
+          ],
         ),
 
         const SizedBox(height: 10),
 
         //Dynamic content based on selected tab
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child:
-              selectedIndex == 0
-                  ? DeviceGeneralInfoScreen(device: widget.device)
-                  : DeviceDiagnosticsInfoScreen(device: widget.device),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child:
+                selectedIndex == 0
+                    ? DeviceGeneralInfoScreen(device: widget.device)
+                    : selectedIndex == 1
+                    ? DeviceDiagnosticsInfoScreen(device: widget.device)
+                    : DeviceConfigInfoScreen(device: widget.device),
+          ),
         ),
       ],
     );
@@ -125,6 +192,68 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
             fontWeight: FontWeight.w600,
           ),
           textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDynamicDatePicker(bool isDark) {
+    return GestureDetector(
+      onTap: _selectDate,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: tTransparent,
+          border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
+        ),
+        child: Text(
+          DateFormat('dd MMM yyyy').format(selectedDate).toUpperCase(),
+          style: GoogleFonts.urbanist(
+            fontSize: 12.5,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder:
+          (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: Colors.blueAccent,
+                onPrimary: Colors.white,
+                onSurface: Colors.black,
+              ),
+            ),
+            child: child!,
+          ),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() => selectedDate = picked);
+    }
+  }
+
+  Widget _buildLabelBox(String text, Color textColor, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: tTransparent,
+        border: Border.all(width: 0.5, color: isDark ? tWhite : tBlack),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.urbanist(
+          fontSize: 12,
+          color: textColor,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

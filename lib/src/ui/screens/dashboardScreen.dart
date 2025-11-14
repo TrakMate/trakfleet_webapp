@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,10 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
+import '../widgets/charts/alertsChart.dart';
 import '../widgets/charts/tripsChart.dart';
+import '../widgets/charts/vehicleUtilizationChart.dart';
+import 'devicesScreen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -37,7 +41,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     {'label': 'Stopped', 'color': tRed, 'percent': 40.0},
     {'label': 'Idle', 'color': tOrange1, 'percent': 30.0},
     {'label': 'Disconnected', 'color': tGrey, 'percent': 20.0},
-    {'label': 'Non-Coverage', 'color': Colors.purple, 'percent': 20.0},
   ];
 
   List<Map<String, dynamic>> _getStatusWithCounts() {
@@ -494,36 +497,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Left Vehicle Summary
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        height: 210,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          children: [
-                            _buildVehicleHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildVehicleBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          // context.go(
+                          //   '/home/devices?status=${label.toLowerCase()}',
+                          // );
+
+                          context.go('/home/devices');
+                        },
+                        child: Container(
+                          height: 190,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            children: [
+                              _buildVehicleHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildVehicleBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -534,7 +546,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       flex: 7,
                       child: Container(
                         // width: MediaQuery.of(context).size.width * 0.5,
-                        height: 210,
+                        height: 190,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -548,7 +560,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 5,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -574,38 +589,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Alerts Summary
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        // width: double.infinity,
-                        height: 210,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildAlertsHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildAlertsBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/alerts');
+                        },
+                        child: Container(
+                          // width: double.infinity,
+                          height: 190,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildAlertsHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildAlertsBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -616,37 +636,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        height: 325,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTripsHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildTripsBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/trips');
+                        },
+                        child: Container(
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTripsHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildTripsBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -654,7 +679,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 7,
                       child: Container(
-                        height: 325,
+                        height: 300,
                         width: double.infinity,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
@@ -717,7 +742,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       flex: 3,
                       child: Container(
-                        height: 325,
+                        height: 300,
                         decoration: BoxDecoration(
                           color: isDark ? tBlack : tWhite,
                           boxShadow: [
@@ -782,6 +807,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         padding: const EdgeInsets.all(15),
+                        child: VehicleUtilizationChart(),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -803,6 +829,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         padding: const EdgeInsets.all(15),
+                        child: AlertsChart(),
                       ),
                     ),
                   ],
@@ -1004,7 +1031,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildTotalVehiclesInfo(isDark),
-        _buildIconCircle('icons/vehicle.svg', tBlue),
+        _buildIconCircle('icons/vehicle1.svg', tBlue),
       ],
     );
   }
@@ -1034,7 +1061,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Total Vehicles',
+          'Vehicles',
           style: GoogleFonts.urbanist(
             fontSize: 14,
             color: isDark ? tWhite : tBlack,
@@ -1145,7 +1172,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     width: 60,
     height: 60,
     decoration: BoxDecoration(
-      color: color.withOpacity(0.25),
+      // color: color.withOpacity(0.25),
+      gradient: SweepGradient(
+        colors: [color.withOpacity(0.6), color.withOpacity(0.2)],
+        // startAngle: 3.14 * 1.25,
+        // endAngle: 3.14 * 2.25,
+      ),
       shape: BoxShape.circle,
     ),
     padding: const EdgeInsets.all(15),
@@ -1156,17 +1188,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildAnyValuesColumn(
-          iconPath: 'icons/vehicle.svg',
+        _buildVehicleValuesColumn(
+          iconPath: 'icons/vehicle1.svg',
           iconColor: tGreen,
           title: 'Active Vehicles',
           value: '900',
+          percentage: '65%',
         ),
-        _buildAnyValuesColumn(
-          iconPath: 'icons/vehicle.svg',
+        _buildVehicleValuesColumn(
+          iconPath: 'icons/vehicle1.svg',
           iconColor: tRedDark,
           title: 'Inactive Vehicles',
           value: '450',
+          percentage: '35%',
         ),
       ],
     );
@@ -1179,13 +1213,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _buildAnyValuesColumn(
           iconPath: 'icons/alerts.svg',
           iconColor: tRedDark,
-          title: 'Crtitical Alerts',
+          title: 'Crtitical',
           value: '195',
         ),
         _buildAnyValuesColumn(
           iconPath: 'icons/alerts.svg',
           iconColor: tBlue1,
-          title: 'Non-Critical Alerts',
+          title: 'Non-Critical',
+          value: '380',
+        ),
+        _buildAnyValuesColumn(
+          iconPath: 'icons/flagged.svg',
+          iconColor: tRedDark,
+          title: 'Faults',
           value: '380',
         ),
       ],
@@ -1194,6 +1234,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildTripsBottomSection() {
     final List<Map<String, dynamic>> tripStats = [
+      {
+        'iconPath': 'icons/completed.svg',
+        'iconColor': tBlue,
+        'title': 'Completed Trips',
+        'value': '45,300',
+      },
+      {
+        'iconPath': 'icons/ongoing.svg',
+        'iconColor': tOrange1,
+        'title': 'Ongoing Trips',
+        'value': '75,200',
+      },
       {
         'iconPath': 'icons/distance.svg',
         'iconColor': tGreen,
@@ -1206,36 +1258,101 @@ class _DashboardScreenState extends State<DashboardScreen> {
         'title': 'Consumed Hours',
         'value': '3,450',
       },
-      {
-        'iconPath': 'icons/completed.svg',
-        'iconColor': tBlue,
-        'title': 'Completed Trips',
-        'value': '45,300',
-      },
-      {
-        'iconPath': 'icons/battery.svg',
-        'iconColor': tOrange1,
-        'title': 'Power (kWh)',
-        'value': '75,200',
-      },
     ];
 
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(), // avoid nested scroll
-      shrinkWrap: true, // so it fits inside Column
-      crossAxisCount: 2, // 2 items per row
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 0,
-      childAspectRatio: 1.8, // adjust spacing shape
-      children:
-          tripStats.map((stat) {
-            return _buildAnyValuesColumn(
-              iconPath: stat['iconPath'],
-              iconColor: stat['iconColor'],
-              title: stat['title'],
-              value: stat['value'],
-            );
-          }).toList(),
+    List<Widget> rows = [];
+    for (int i = 0; i < tripStats.length; i += 2) {
+      final first = tripStats[i];
+      final second = (i + 1 < tripStats.length) ? tripStats[i + 1] : null;
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Row(
+            children: [
+              // First item
+              Expanded(
+                child: _buildAnyValuesColumn(
+                  iconPath: first['iconPath'],
+                  iconColor: first['iconColor'],
+                  title: first['title'],
+                  value: first['value'],
+                ),
+              ),
+
+              const SizedBox(width: 25),
+
+              // Second item (if exists)
+              Expanded(
+                child:
+                    second != null
+                        ? _buildAnyValuesColumn(
+                          iconPath: second['iconPath'],
+                          iconColor: second['iconColor'],
+                          title: second['title'],
+                          value: second['value'],
+                        )
+                        : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
+  }
+
+  Widget _buildVehicleValuesColumn({
+    required String iconPath,
+    required Color iconColor,
+    required String title,
+    required String value,
+    required String percentage,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+            const SizedBox(width: 5),
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$value ',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 13,
+                      color: isDark ? tWhite : tBlack,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '($percentage)',
+                    style: GoogleFonts.urbanist(
+                      fontSize: 13,
+                      color: iconColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          style: GoogleFonts.urbanist(
+            fontSize: 12,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1250,21 +1367,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+        Row(
+          children: [
+            SvgPicture.asset(iconPath, width: 25, height: 25, color: iconColor),
+            const SizedBox(width: 5),
+            Text(
+              value,
+              style: GoogleFonts.urbanist(
+                fontSize: 13,
+                color: isDark ? tWhite : tBlack,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 6),
         Text(
           title,
           style: GoogleFonts.urbanist(
-            fontSize: 14,
-            color: isDark ? tWhite : tBlack,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: GoogleFonts.urbanist(
-            fontSize: 13,
+            fontSize: 12,
             color: isDark ? tWhite : tBlack,
             fontWeight: FontWeight.w500,
           ),
@@ -1317,20 +1438,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(height: 25, width: 4, color: color),
-                                const SizedBox(width: 6),
-                                Text(
-                                  label,
-                                  style: GoogleFonts.urbanist(
-                                    fontSize: 14,
-                                    color: isDark ? tWhite : tBlack,
-                                    fontWeight: FontWeight.w600,
+                            GestureDetector(
+                              onTap: () {
+                                context.go(
+                                  '/home/devices?status=${label.toLowerCase()}',
+                                );
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(height: 25, width: 4, color: color),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    label,
+                                    style: GoogleFonts.urbanist(
+                                      fontSize: 14,
+                                      color: isDark ? tWhite : tBlack,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Text(
@@ -1732,7 +1860,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: getAlertColor(alert['alertType']!),
+                          // color: getAlertColor(alert['alertType']!),
+                          gradient: SweepGradient(
+                            colors: [
+                              getAlertColor(alert['alertType']!),
+                              getAlertColor(
+                                alert['alertType']!,
+                              ).withOpacity(0.5),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

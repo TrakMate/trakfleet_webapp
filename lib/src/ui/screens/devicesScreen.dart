@@ -12,7 +12,8 @@ import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
 
 class DevicesScreen extends StatefulWidget {
-  const DevicesScreen({super.key});
+  final String? filterStatus; // can be 'moving', 'stopped', etc.
+  const DevicesScreen({super.key, this.filterStatus});
 
   @override
   State<DevicesScreen> createState() => _DevicesScreenState();
@@ -21,13 +22,7 @@ class DevicesScreen extends StatefulWidget {
 class _DevicesScreenState extends State<DevicesScreen> {
   OverlayEntry? _devicePopup;
 
-  final List<String> _statuses = [
-    'Moving',
-    'Stopped',
-    'Idle',
-    'Disconnected',
-    'Non-Coverage',
-  ];
+  final List<String> _statuses = ['Moving', 'Stopped', 'Idle', 'Disconnected'];
 
   final List<String> _filterValues = [
     'Max Odo',
@@ -47,7 +42,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
     'Stopped': tRed,
     'Idle': tOrange1,
     'Disconnected': tGrey,
-    'Non-Coverage': Colors.purple,
   };
 
   final MapController _mapController = MapController();
@@ -64,21 +58,37 @@ class _DevicesScreenState extends State<DevicesScreen> {
   int currentPage = 1;
   int itemsPerPage = 10;
 
-  late final List<Map<String, dynamic>> allDevices;
+  // late final List<Map<String, dynamic>> allDevices;
+  late List<Map<String, dynamic>> filteredallDevices;
+
   late final List<Marker> _cachedMarkers;
 
   final List<String> _truckIconPaths = [
     'icons/truck1.svg',
-    'icons/truck2.svg',
     'icons/truck3.svg',
     'icons/truck4.svg',
+    'icons/truck5.svg',
   ];
 
   @override
   void initState() {
     super.initState();
-    allDevices = _generateDummyDevices(count: 1000, seed: 840);
-    _cachedMarkers = _buildMarkersFromDevices(allDevices);
+    filteredallDevices = _generateDummyDevices(count: 1000, seed: 840);
+    // Apply filter if navigated with a status
+    if (widget.filterStatus != null) {
+      filteredallDevices =
+          filteredallDevices.where((device) {
+            final status = device['status']?.toString().toLowerCase();
+            return status == widget.filterStatus!.toLowerCase();
+          }).toList();
+    } else {
+      filteredallDevices = filteredallDevices;
+    }
+
+    // Build markers based on filtered list
+    _cachedMarkers = _buildMarkersFromDevices(filteredallDevices);
+
+    // _cachedMarkers = _buildMarkersFromDevices(allDevices);
   }
 
   @override
@@ -144,27 +154,23 @@ class _DevicesScreenState extends State<DevicesScreen> {
       final lat = anchor.latitude + (rnd.nextDouble() - 0.5) * 0.06;
       final lon = anchor.longitude + (rnd.nextDouble() - 0.5) * 0.06;
 
-      final statuses = [
-        'Moving',
-        'Idle',
-        'Stopped',
-        'Disconnected',
-        'Non-Coverage',
-      ];
+      final statuses = ['Moving', 'Idle', 'Stopped', 'Disconnected'];
       final status = statuses[rnd.nextInt(statuses.length)];
 
       final odo = 7000 + rnd.nextInt(9000);
       final trips = rnd.nextInt(30);
       final alerts = rnd.nextInt(6);
+      final fuel = rnd.nextInt(45);
 
       final device = {
         'vehicleNumber': 'VHN${1000 + i}',
         'status': status,
         'imei': '${125864725 + i * 5}',
         'icid': '${156857246 + i * 3}',
-        'odo': '${odo} km',
+        'odo': '$odo',
         'trips': '$trips',
         'alerts': '$alerts',
+        'fuel': '${fuel} L',
         'location': '$areaName, $city',
         'latlng': LatLng(lat, lon),
       };
@@ -191,9 +197,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
           iconPath = _truckIconPaths[2];
           break;
         case 'Disconnected':
-        case 'Non-Coverage':
-          iconPath = _truckIconPaths[3];
-          break;
         default:
           iconPath = _truckIconPaths[3];
       }
@@ -228,7 +231,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
   }
 
   List<Map<String, dynamic>> get filteredDevices {
-    List<Map<String, dynamic>> result = List.from(allDevices);
+    List<Map<String, dynamic>> result = List.from(filteredallDevices);
 
     if (_selectedStatuses.isNotEmpty) {
       result =
@@ -606,7 +609,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
               return Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: color,
+                  // color: color,
+                  gradient: SweepGradient(
+                    colors: [color, color.withOpacity(0.6)],
+                  ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -788,6 +794,34 @@ class _DevicesScreenState extends State<DevicesScreen> {
         width: 18,
         height: 18,
         color: isDark ? tWhite : tBlack,
+      ),
+    ),
+  );
+
+  Widget _addNewDeviceButton(bool isDark) => Container(
+    height: 40,
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    decoration: BoxDecoration(color: isDark ? tWhite : tBlack),
+    child: TextButton(
+      onPressed: () {},
+      child: Row(
+        children: [
+          SvgPicture.asset(
+            'icons/device.svg',
+            width: 18,
+            height: 18,
+            color: isDark ? tBlack : tWhite,
+          ),
+          SizedBox(width: 5),
+          Text(
+            'New Device',
+            style: GoogleFonts.urbanist(
+              fontSize: 13,
+              color: isDark ? tBlack : tWhite,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     ),
   );
@@ -1039,7 +1073,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
     required String vehicleNumber,
     required String status,
     required String imei,
-    required String icid,
+    required String fuel,
     required String odo,
     required String trips,
     required String alerts,
@@ -1058,9 +1092,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
         break;
       case 'disconnected':
         statusColor = tGrey;
-        break;
-      case 'non-coverage':
-        statusColor = Colors.purple;
         break;
       default:
         statusColor = tBlack;
@@ -1089,47 +1120,75 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 CrossAxisAlignment.start, // Aligns status on top
             children: [
               /// IMEI + Vehicle box (fixed width)
-              Container(
-                width: 250, // fixed width (adjust as you like)
-                decoration: BoxDecoration(
-                  border: Border.all(color: statusColor, width: 1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(5),
-                          topRight: Radius.circular(5),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 250, // fixed width (adjust as you like)
+                    decoration: BoxDecoration(
+                      border: Border.all(color: statusColor, width: 1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            // color: statusColor,
+                            gradient: SweepGradient(
+                              colors: [
+                                statusColor,
+                                statusColor.withOpacity(0.6),
+                              ],
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(5),
+                              topRight: Radius.circular(5),
+                            ),
+                          ),
+                          child: Text(
+                            imei,
+                            style: GoogleFonts.urbanist(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? tBlack : tWhite,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        imei,
-                        style: GoogleFonts.urbanist(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? tBlack : tWhite,
+                        Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Text(
+                            'VEHICLE  - $vehicleNumber',
+                            style: GoogleFonts.urbanist(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? tWhite : tBlack,
+                            ),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Tooltip(
+                    message: 'Edit',
+                    textStyle: GoogleFonts.urbanist(
+                      color: isDark ? tBlack : tWhite,
+                      fontSize: 11,
+                    ),
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: SvgPicture.asset(
+                        'icons/edit.svg',
+                        width: 25,
+                        height: 25,
+                        color: tBlue,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        'VEHICLE  - $vehicleNumber',
-                        style: GoogleFonts.urbanist(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? tWhite : tBlack,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
               const SizedBox(width: 15),
@@ -1141,7 +1200,10 @@ class _DevicesScreenState extends State<DevicesScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor,
+                  // color: statusColor,
+                  gradient: SweepGradient(
+                    colors: [statusColor, statusColor.withOpacity(0.6)],
+                  ),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -1160,11 +1222,11 @@ class _DevicesScreenState extends State<DevicesScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatColumn(isDark, title: 'ICID', value: icid),
+              _buildStatColumn(isDark, title: 'ODO', value: odo),
               _buildStatColumn(
                 isDark,
-                title: 'ODO',
-                value: odo,
+                title: 'Fuel',
+                value: fuel,
                 alignEnd: true,
               ),
             ],
@@ -1268,6 +1330,8 @@ class _DevicesScreenState extends State<DevicesScreen> {
                     _buildFilterBySearch(isDark),
                     const SizedBox(width: 6),
                     _filterButton(isDark),
+                    const SizedBox(width: 6),
+                    _addNewDeviceButton(isDark),
                   ],
                 ),
               ],
@@ -1307,7 +1371,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
                                             vehicleNumber:
                                                 device['vehicleNumber'],
                                             status: device['status'],
-                                            icid: device['icid'],
+                                            fuel: device['fuel'],
                                             odo: device['odo'],
                                             trips: device['trips'],
                                             alerts: device['alerts'],
