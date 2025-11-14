@@ -12,7 +12,8 @@ import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
 
 class DevicesScreen extends StatefulWidget {
-  const DevicesScreen({super.key});
+  final String? filterStatus; // can be 'moving', 'stopped', etc.
+  const DevicesScreen({super.key, this.filterStatus});
 
   @override
   State<DevicesScreen> createState() => _DevicesScreenState();
@@ -57,7 +58,9 @@ class _DevicesScreenState extends State<DevicesScreen> {
   int currentPage = 1;
   int itemsPerPage = 10;
 
-  late final List<Map<String, dynamic>> allDevices;
+  // late final List<Map<String, dynamic>> allDevices;
+  late List<Map<String, dynamic>> filteredallDevices;
+
   late final List<Marker> _cachedMarkers;
 
   final List<String> _truckIconPaths = [
@@ -70,8 +73,22 @@ class _DevicesScreenState extends State<DevicesScreen> {
   @override
   void initState() {
     super.initState();
-    allDevices = _generateDummyDevices(count: 1000, seed: 840);
-    _cachedMarkers = _buildMarkersFromDevices(allDevices);
+    filteredallDevices = _generateDummyDevices(count: 1000, seed: 840);
+    // Apply filter if navigated with a status
+    if (widget.filterStatus != null) {
+      filteredallDevices =
+          filteredallDevices.where((device) {
+            final status = device['status']?.toString().toLowerCase();
+            return status == widget.filterStatus!.toLowerCase();
+          }).toList();
+    } else {
+      filteredallDevices = filteredallDevices;
+    }
+
+    // Build markers based on filtered list
+    _cachedMarkers = _buildMarkersFromDevices(filteredallDevices);
+
+    // _cachedMarkers = _buildMarkersFromDevices(allDevices);
   }
 
   @override
@@ -150,7 +167,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
         'status': status,
         'imei': '${125864725 + i * 5}',
         'icid': '${156857246 + i * 3}',
-        'odo': '${odo} km',
+        'odo': '$odo',
         'trips': '$trips',
         'alerts': '$alerts',
         'fuel': '${fuel} L',
@@ -214,7 +231,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
   }
 
   List<Map<String, dynamic>> get filteredDevices {
-    List<Map<String, dynamic>> result = List.from(allDevices);
+    List<Map<String, dynamic>> result = List.from(filteredallDevices);
 
     if (_selectedStatuses.isNotEmpty) {
       result =

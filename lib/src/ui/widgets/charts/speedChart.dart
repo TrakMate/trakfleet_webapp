@@ -56,7 +56,7 @@ class _VehicleSpeedChartState extends State<VehicleSpeedChart> {
       minY: widget.speedData.reduce(min) - 2,
       maxY: widget.speedData.reduce(max) + 2,
       gridData: FlGridData(
-        show: true,
+        show: false,
         horizontalInterval: 10,
         getDrawingHorizontalLine:
             (value) => FlLine(

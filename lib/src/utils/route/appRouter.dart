@@ -15,6 +15,7 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
     routes: [
+      GoRoute(path: '/', redirect: (_, __) => '/home/dashboard'),
       GoRoute(
         path: '/',
         name: 'loading',
@@ -41,9 +42,14 @@ class AppRouter {
           //   builder: (context, state) => const DevicesScreen(),
           // ),
           GoRoute(
+            // path: '/home/devices',
+            // name: 'devices',
+            // builder: (context, state) => DevicesScreen(),
             path: '/home/devices',
-            name: 'devices',
-            builder: (context, state) => DevicesScreen(),
+            builder: (context, state) {
+              final status = state.uri.queryParameters['status'];
+              return DevicesScreen(filterStatus: status);
+            },
             routes: [
               GoRoute(
                 path: ':imei',
@@ -109,46 +115,11 @@ class AppRouter {
             name: 'trips',
             builder: (context, state) => const TripsScreen(),
           ),
+
           // GoRoute(
           //   path: '/home/tracking',
           //   name: 'tracking',
           //   builder: (context, state) => const TrackingScreen(),
-          // ),
-
-          // GoRoute(
-          //   path: '/home/reports',
-          //   name: 'reports',
-          //   builder: (context, state) => const ReportsScreen(),
-          //   routes: [
-          //     GoRoute(
-          //       path: 'devices',
-          //       name: 'reportsDevices',
-          //       builder:
-          //           (context, state) =>
-          //               const ReportsScreen(), // Replace with your ReportsDevicesScreen if separate
-          //     ),
-          //     GoRoute(
-          //       path: 'trips',
-          //       name: 'reportsTrips',
-          //       builder:
-          //           (context, state) =>
-          //               const ReportsScreen(), // Replace with your ReportsTripsScreen
-          //     ),
-          //     GoRoute(
-          //       path: 'alerts',
-          //       name: 'reportsAlerts',
-          //       builder:
-          //           (context, state) =>
-          //               const ReportsScreen(), // Replace if unique
-          //     ),
-          //     GoRoute(
-          //       path: 'stats',
-          //       name: 'reportsStats',
-          //       builder:
-          //           (context, state) =>
-          //               const ReportsScreen(), // Replace if unique
-          //     ),
-          //   ],
           // ),
           GoRoute(
             path: '/home/reports',

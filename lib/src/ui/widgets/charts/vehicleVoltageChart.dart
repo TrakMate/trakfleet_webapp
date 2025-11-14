@@ -56,7 +56,7 @@ class _VehicleVoltageChartState extends State<VehicleVoltageChart> {
       minY: widget.voltageData.reduce(min) - 1,
       maxY: widget.voltageData.reduce(max) + 1,
       gridData: FlGridData(
-        show: true,
+        show: false,
         horizontalInterval: 1,
         verticalInterval: 1,
         getDrawingHorizontalLine:

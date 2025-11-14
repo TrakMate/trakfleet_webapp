@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import '../../utils/appResponsive.dart';
 import '../widgets/charts/alertsChart.dart';
 import '../widgets/charts/tripsChart.dart';
 import '../widgets/charts/vehicleUtilizationChart.dart';
+import 'devicesScreen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -495,36 +497,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Left Vehicle Summary
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        height: 190,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          children: [
-                            _buildVehicleHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildVehicleBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          // context.go(
+                          //   '/home/devices?status=${label.toLowerCase()}',
+                          // );
+
+                          context.go('/home/devices');
+                        },
+                        child: Container(
+                          height: 190,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            children: [
+                              _buildVehicleHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildVehicleBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -578,38 +589,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Alerts Summary
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        // width: double.infinity,
-                        height: 190,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildAlertsHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildAlertsBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/alerts');
+                        },
+                        child: Container(
+                          // width: double.infinity,
+                          height: 190,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildAlertsHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildAlertsBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -620,37 +636,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Container(
-                        height: 300,
-                        decoration: BoxDecoration(
-                          color: isDark ? tBlack : tWhite,
-                          boxShadow: [
-                            BoxShadow(
-                              spreadRadius: 2,
-                              blurRadius: 10,
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.25)
-                                      : tBlack.withOpacity(0.15),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTripsHeaderSection(isDark),
-                            const SizedBox(height: 5),
-                            Divider(
-                              color:
-                                  isDark
-                                      ? tWhite.withOpacity(0.6)
-                                      : tBlack.withOpacity(0.6),
-                              thickness: 0.6,
-                            ),
-                            const SizedBox(height: 5),
-                            _buildTripsBottomSection(),
-                          ],
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/trips');
+                        },
+                        child: Container(
+                          height: 300,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTripsHeaderSection(isDark),
+                              const SizedBox(height: 5),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              const SizedBox(height: 5),
+                              _buildTripsBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -1040,7 +1061,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Total Vehicles',
+          'Vehicles',
           style: GoogleFonts.urbanist(
             fontSize: 14,
             color: isDark ? tWhite : tBlack,
@@ -1202,9 +1223,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           value: '380',
         ),
         _buildAnyValuesColumn(
-          iconPath: 'icons/alerts.svg',
-          iconColor: tOrange1,
-          title: 'Flagged',
+          iconPath: 'icons/flagged.svg',
+          iconColor: tRedDark,
+          title: 'Faults',
           value: '380',
         ),
       ],
@@ -1239,23 +1260,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
     ];
 
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(), // avoid nested scroll
-      shrinkWrap: true, // so it fits inside Column
-      crossAxisCount: 2, // 2 items per row
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 20,
-      childAspectRatio: 2.1, // adjust spacing shape
-      children:
-          tripStats.map((stat) {
-            return _buildAnyValuesColumn(
-              iconPath: stat['iconPath'],
-              iconColor: stat['iconColor'],
-              title: stat['title'],
-              value: stat['value'],
-            );
-          }).toList(),
-    );
+    List<Widget> rows = [];
+    for (int i = 0; i < tripStats.length; i += 2) {
+      final first = tripStats[i];
+      final second = (i + 1 < tripStats.length) ? tripStats[i + 1] : null;
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: Row(
+            children: [
+              // First item
+              Expanded(
+                child: _buildAnyValuesColumn(
+                  iconPath: first['iconPath'],
+                  iconColor: first['iconColor'],
+                  title: first['title'],
+                  value: first['value'],
+                ),
+              ),
+
+              const SizedBox(width: 25),
+
+              // Second item (if exists)
+              Expanded(
+                child:
+                    second != null
+                        ? _buildAnyValuesColumn(
+                          iconPath: second['iconPath'],
+                          iconColor: second['iconColor'],
+                          title: second['title'],
+                          value: second['value'],
+                        )
+                        : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 
   Widget _buildVehicleValuesColumn({
@@ -1393,20 +1438,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(height: 25, width: 4, color: color),
-                                const SizedBox(width: 6),
-                                Text(
-                                  label,
-                                  style: GoogleFonts.urbanist(
-                                    fontSize: 14,
-                                    color: isDark ? tWhite : tBlack,
-                                    fontWeight: FontWeight.w600,
+                            GestureDetector(
+                              onTap: () {
+                                context.go(
+                                  '/home/devices?status=${label.toLowerCase()}',
+                                );
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(height: 25, width: 4, color: color),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    label,
+                                    style: GoogleFonts.urbanist(
+                                      fontSize: 14,
+                                      color: isDark ? tWhite : tBlack,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 10),
                             Text(

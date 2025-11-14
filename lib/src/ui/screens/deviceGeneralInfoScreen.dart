@@ -9,6 +9,7 @@ import '../../utils/appColors.dart';
 import '../../utils/appLogger.dart';
 import '../../utils/appResponsive.dart';
 import '../widgets/charts/alertsChart.dart';
+import '../widgets/charts/doughnutChart.dart';
 import '../widgets/charts/speedDistanceChart.dart';
 import '../widgets/charts/tripsChart.dart';
 
@@ -70,262 +71,369 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
     final device = widget.device;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Left panel
-              Expanded(
-                flex: 4,
-                child: _buildDeviceInfoCard(context, device, isDark),
-              ),
-              const SizedBox(width: 10),
-
-              // Right panel (placeholder for map, chart, etc.)
-              Expanded(flex: 8, child: _buildDeviceStatus(isDark)),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: buildDeviceCard(
+            isDark: isDark,
+            imei: device['imei'] ?? '12265679827872127',
+            vehicleNumber: device['vehicleNumber'] ?? 'VGFDG4251271677',
+            status: device['status'] ?? 'Moving',
+            fuel: device['fuel'] ?? '',
+            odo: device['odo'] ?? '',
+            trips: device['trips'] ?? '',
+            alerts: device['alerts'] ?? '',
+            location: device['location'] ?? '',
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 6,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            child: Padding(
+              // padding: const EdgeInsets.all(10),
+              padding: EdgeInsets.only(left: 10, right: 10, top: 10),
+              child: Column(
+                children: [
+                  Row(
                     children: [
-                      _buildTripsHeaderSection(isDark),
-                      Divider(
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.6)
-                                : tBlack.withOpacity(0.6),
-                        thickness: 0.6,
-                      ),
-                      SizedBox(height: 5),
-                      _buildTripsBottomSection(),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 5,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(5),
-                  child: buildVehicleMap(isDark: isDark, zoom: 16),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 4,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildAlertsHeaderSection(isDark),
-                      Divider(
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.6)
-                                : tBlack.withOpacity(0.6),
-                        thickness: 0.6,
-                      ),
-                      _buildAlertsBottomSection(),
-                      const SizedBox(height: 5),
-                      Text(
-                        'Alerts Info',
-                        style: GoogleFonts.urbanist(
-                          fontSize: 14,
-                          color: isDark ? tWhite : tBlack,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
+                      // Left panel
                       Expanded(
-                        child: SingleChildScrollView(
-                          child: _buildAlertsWidget(isDark: isDark),
+                        flex: 5,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // 🔹 Left section (Title + Doughnut Charts)
+                            Expanded(
+                              flex: 4,
+                              child: Container(
+                                height: 225,
+                                decoration: BoxDecoration(
+                                  color: isDark ? tBlack : tWhite,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      spreadRadius: 2,
+                                      blurRadius: 10,
+                                      color:
+                                          isDark
+                                              ? tWhite.withOpacity(0.25)
+                                              : tBlack.withOpacity(0.15),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(10),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    SingleDoughnutChart(
+                                      currentValue: 12.8,
+                                      avgValue: 12,
+                                      title: "Voltage",
+                                      unit: "V",
+                                      primaryColor: tBlue,
+                                      isDark: isDark,
+                                    ),
+                                    SingleDoughnutChart(
+                                      currentValue: 72,
+                                      avgValue: 55,
+                                      title: "Speed",
+                                      unit: "km/h",
+                                      primaryColor: tGreen,
+                                      isDark: isDark,
+                                    ),
+                                    SingleDoughnutChart(
+                                      currentValue: 64,
+                                      avgValue: 50,
+                                      title: "Fuel",
+                                      unit: "%",
+                                      primaryColor: tBlueSky,
+                                      isDark: isDark,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            // 🔹 Right section (Info cards)
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildInfoCard(
+                                    isDark,
+                                    "Odometer (km)",
+                                    "25,412",
+                                    tBlueGradient2,
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  _buildInfoCard(
+                                    isDark,
+                                    "Vehicle ON Hours (hrs)",
+                                    "4527289",
+                                    tRedGradient2,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+
+                      const SizedBox(width: 10),
+
+                      // Right panel (placeholder for map, chart, etc.)
+                      Expanded(flex: 5, child: _buildDeviceStatus(isDark)),
                     ],
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(15),
-                  child: TripsChart(),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 5,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(15),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                  const SizedBox(height: 10),
+                  Row(
                     children: [
-                      Text(
-                        'Vehicle Status (Past 24 Hours)',
-                        style: GoogleFonts.urbanist(
-                          fontSize: 13,
-                          color: isDark ? tWhite : tBlack,
-                          fontWeight: FontWeight.w600,
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 6,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildTripsHeaderSection(isDark),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              SizedBox(height: 5),
+                              _buildTripsBottomSection(),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 15),
-                      _buildStatusBarChart(isDark),
-                      const SizedBox(height: 10),
-                      // Legend
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _LegendItem(
-                            color: tGreen.withOpacity(0.9),
-                            label: "Moving",
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 5,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 6),
-                          _LegendItem(
-                            color: tOrange1.withOpacity(0.9),
-                            label: "Idle",
+                          padding: EdgeInsets.all(5),
+                          child: buildVehicleMap(isDark: isDark, zoom: 16),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 6),
-                          _LegendItem(
-                            color: tRed.withOpacity(0.9),
-                            label: "Stopped",
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildAlertsHeaderSection(isDark),
+                              Divider(
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.6)
+                                        : tBlack.withOpacity(0.6),
+                                thickness: 0.6,
+                              ),
+                              _buildAlertsBottomSection(),
+                              const SizedBox(height: 5),
+                              Text(
+                                'Alerts Info',
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 14,
+                                  color: isDark ? tWhite : tBlack,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: _buildAlertsWidget(isDark: isDark),
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 6),
-                          _LegendItem(
-                            color: tBlue.withOpacity(0.9),
-                            label: "Halted",
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 4,
-                child: Container(
-                  height: 330,
-                  decoration: BoxDecoration(
-                    color: isDark ? tBlack : tWhite,
-                    boxShadow: [
-                      BoxShadow(
-                        spreadRadius: 2,
-                        blurRadius: 10,
-                        color:
-                            isDark
-                                ? tWhite.withOpacity(0.25)
-                                : tBlack.withOpacity(0.15),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: TripsChart(),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 5,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Vehicle Status (Past 24 Hours)',
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 13,
+                                  color: isDark ? tWhite : tBlack,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              _buildStatusBarChart(isDark),
+                              const SizedBox(height: 10),
+                              // Legend
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _LegendItem(
+                                    color: tGreen.withOpacity(0.9),
+                                    label: "Moving",
+                                  ),
+                                  SizedBox(width: 6),
+                                  _LegendItem(
+                                    color: tOrange1.withOpacity(0.9),
+                                    label: "Idle",
+                                  ),
+                                  SizedBox(width: 6),
+                                  _LegendItem(
+                                    color: tRed.withOpacity(0.9),
+                                    label: "Stopped",
+                                  ),
+                                  SizedBox(width: 6),
+                                  _LegendItem(
+                                    color: tBlue.withOpacity(0.9),
+                                    label: "Halted",
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          height: 330,
+                          decoration: BoxDecoration(
+                            color: isDark ? tBlack : tWhite,
+                            boxShadow: [
+                              BoxShadow(
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                color:
+                                    isDark
+                                        ? tWhite.withOpacity(0.25)
+                                        : tBlack.withOpacity(0.15),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.all(15),
+                          child: AlertsChart(),
+                        ),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(15),
-                  child: AlertsChart(),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildDeviceInfoCard(
-    BuildContext context,
-    Map<String, dynamic> device,
+  Widget _buildInfoCard(
     bool isDark,
+    String title,
+    String value,
+    Gradient cardColor,
   ) {
     return Container(
-      height: 215,
+      width: double.infinity, // fits 2 per row
       decoration: BoxDecoration(
-        color: isDark ? tBlack : tWhite,
+        color: tTransparent,
         boxShadow: [
           BoxShadow(
             spreadRadius: 2,
@@ -334,81 +442,41 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(10),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildTopRow(context, device, isDark),
-          const SizedBox(height: 20),
-          _buildDeviceStats(context, device, isDark),
-          const SizedBox(height: 2),
-          Divider(
-            color: isDark ? tWhite.withOpacity(0.4) : tBlack.withOpacity(0.4),
-            thickness: 0.3,
-          ),
-          const SizedBox(height: 2),
-          _buildLocationRow(device, isDark),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopRow(
-    BuildContext context,
-    Map<String, dynamic> device,
-    bool isDark,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildImeiVehicleBox(device, isDark),
-        const SizedBox(width: 15),
-        _buildStatusAndTime(device, isDark),
-      ],
-    );
-  }
-
-  Widget _buildImeiVehicleBox(Map<String, dynamic> device, bool isDark) {
-    return Container(
-      width: 200,
-      decoration: BoxDecoration(
-        border: Border.all(color: statusColor, width: 1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Column(
-        children: [
+          /// Header
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 6),
             decoration: BoxDecoration(
-              // color: statusColor,
-              gradient: SweepGradient(
-                colors: [statusColor, statusColor.withOpacity(0.6)],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(5),
-                topRight: Radius.circular(5),
-              ),
+              color: isDark ? tBlack : tWhite,
+              // border: Border.all(width: 0.5, color: isDark ? tWhite : tBlack),
             ),
             child: Text(
-              device['imei'] ?? '',
+              title,
               style: GoogleFonts.urbanist(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: isDark ? tBlack : tWhite,
+                fontSize: 12,
+                color: isDark ? tWhite : tBlack,
+                fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
+
+          /// Gradient Value Box
+          Container(
+            height: 78,
+            width: double.infinity,
+            decoration: BoxDecoration(gradient: cardColor),
+            alignment: Alignment.center,
             child: Text(
-              device['vehicleNumber'] ?? '',
+              value,
               style: GoogleFonts.urbanist(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isDark ? tWhite : tBlack,
+                fontSize: 33,
+                color: tWhite,
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -416,154 +484,267 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
     );
   }
 
-  Widget _buildStatusAndTime(Map<String, dynamic> device, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            // color: statusColor,
-            gradient: SweepGradient(
-              colors: [statusColor, statusColor.withOpacity(0.6)],
-            ),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            device['status'] ?? '',
-            style: GoogleFonts.urbanist(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? tBlack : tWhite,
-            ),
-          ),
-        ),
-        const SizedBox(height: 5),
-        Row(
-          children: [
-            SvgPicture.asset(
-              'icons/time.svg',
-              width: 16,
-              height: 16,
-              color: isDark ? tWhite : tBlack,
-            ),
-            const SizedBox(width: 2),
-            Text(
-              '15:52 PM 04 NOV 2025',
-              style: GoogleFonts.urbanist(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: isDark ? tWhite : tBlack,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDeviceStats(
-    BuildContext context,
-    Map<String, dynamic> device,
-    bool isDark,
-  ) {
-    final stats = [
-      {'title': 'ODO', 'value': device['odo'] ?? '-'},
-      {'title': 'Consumed Hours', 'value': '125 hrs'},
-      {'title': 'Speed', 'value': '80 km/h'},
-      {'title': 'Avg. ODO', 'value': '450 km'},
-      {'title': 'Avg. Consumed Hours', 'value': '25 hrs'},
-      {'title': 'Avg. Speed', 'value': '45 km/h'},
-    ];
-
-    List<Row> rows = [];
-    for (int i = 0; i < stats.length; i += 3) {
-      final chunk = stats.skip(i).take(3).toList();
-      rows.add(
-        Row(
-          children:
-              chunk
-                  .map(
-                    (item) => Expanded(
-                      child: _buildStatItem(
-                        item['title']!,
-                        item['value']!,
-                        isDark,
-                      ),
-                    ),
-                  )
-                  .toList(),
-        ),
-      );
+  Widget buildDeviceCard({
+    required bool isDark,
+    required String vehicleNumber,
+    required String status,
+    required String imei,
+    required String fuel,
+    required String odo,
+    required String trips,
+    required String alerts,
+    required String location,
+  }) {
+    Color statusColor;
+    switch (status.toLowerCase()) {
+      case 'moving':
+        statusColor = tGreen;
+        break;
+      case 'idle':
+        statusColor = tOrange1;
+        break;
+      case 'stopped':
+        statusColor = tRed;
+        break;
+      case 'disconnected':
+        statusColor = tGrey;
+        break;
+      default:
+        statusColor = tBlack;
     }
 
-    return Column(mainAxisAlignment: MainAxisAlignment.center, children: rows);
-  }
-
-  Widget _buildStatItem(String label, String value, bool isDark) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.urbanist(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: isDark ? tWhite : tBlack,
+    return Container(
+      width: double.infinity,
+      height: 90,
+      decoration: BoxDecoration(
+        // color: tGrey.withOpacity(0.1),
+        color: isDark ? tBlack : tWhite,
+        // borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            spreadRadius: 2,
+            blurRadius: 10,
+            color: isDark ? tWhite.withOpacity(0.25) : tBlack.withOpacity(0.15),
           ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: GoogleFonts.urbanist(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: isDark ? tWhite : tBlack,
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // SvgPicture.asset('icons/truck1.svg', width: 80, height: 80),
+          Image.asset(
+            'images/truck1.png',
+            width: 100,
+            height: 100,
+            fit: BoxFit.contain,
           ),
-        ),
-      ],
-    );
-  }
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // ===== Top Row =====
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // ==== Left Side (IMEI + Vehicle + Status) ====
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // IMEI + Vehicle ID Container
+                          Flexible(
+                            child: Container(
+                              width: 350,
+                              // constraints: const BoxConstraints(
+                              //   minWidth: 200,
+                              //   maxWidth: 400,
+                              // ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: statusColor,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  // IMEI Box
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: SweepGradient(
+                                        colors: [
+                                          statusColor,
+                                          statusColor.withOpacity(0.6),
+                                        ],
+                                      ),
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(5),
+                                        bottomLeft: Radius.circular(5),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '727288256$imei',
+                                      style: GoogleFonts.urbanist(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? tWhite : tBlack,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
 
-  Widget _buildLocationRow(Map<String, dynamic> device, bool isDark) {
-    return Row(
-      children: [
-        Expanded(
-          child: Row(
-            children: [
-              SvgPicture.asset(
-                'icons/geofence.svg',
-                width: 16,
-                height: 16,
-                color: tBlue,
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  'Current Location : ${device['location']}',
-                  style: GoogleFonts.urbanist(
-                    fontSize: 13,
-                    color: isDark ? tWhite : tBlack,
-                  ),
+                                  // Vehicle ID Text
+                                  Expanded(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                        ),
+                                        child: Text(
+                                          'VEHICLE - $vehicleNumber',
+                                          style: GoogleFonts.urbanist(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            color: isDark ? tWhite : tBlack,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          // Moving Status Container
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: SweepGradient(
+                                colors: [
+                                  statusColor,
+                                  statusColor.withOpacity(0.6),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              status,
+                              style: GoogleFonts.urbanist(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? tWhite : tBlack,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ==== Right Side ====
+                    SvgPicture.asset(
+                      'icons/immobilize_ON.svg',
+                      width: 25,
+                      height: 25,
+                      color: isDark ? tRed : tGreen,
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ),
 
-        SvgPicture.asset(
-          'icons/immobilize_ON.svg',
-          width: 25,
-          height: 25,
-          color: isDark ? tRed : tGreen,
-        ),
-      ],
+                const SizedBox(height: 2),
+                Divider(
+                  // color:
+                  //     isDark
+                  //         ? tWhite.withOpacity(0.4)
+                  //         : tBlack.withOpacity(0.4),
+                  color: statusColor,
+                  thickness: 0.3,
+                ),
+                const SizedBox(height: 2),
+
+                // ===== Bottom Row (Location) =====
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: SvgPicture.asset(
+                              'icons/geofence.svg',
+                              color: statusColor,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Live Location: $location',
+                              style: GoogleFonts.urbanist(
+                                fontSize: 13,
+                                color: isDark ? tWhite : tBlack,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'DateTime :',
+                          style: GoogleFonts.urbanist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: isDark ? tWhite : tBlack,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          '15:52 PM 04 NOV 2025',
+                          style: GoogleFonts.urbanist(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? tWhite : tBlack,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildDeviceStatus(bool isDark) {
     return Container(
-      height: 215,
-
+      height: 225,
       decoration: BoxDecoration(
         color: isDark ? tBlack : tWhite,
         boxShadow: [
@@ -921,23 +1102,48 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
       },
     ];
 
-    return GridView.count(
-      physics: const NeverScrollableScrollPhysics(), // avoid nested scroll
-      shrinkWrap: true, // so it fits inside Column
-      crossAxisCount: 2, // 2 items per row
-      crossAxisSpacing: 10,
-      mainAxisSpacing: 0,
-      childAspectRatio: 2.81, // adjust spacing shape
-      children:
-          tripStats.map((stat) {
-            return _buildAnyValuesColumn(
-              iconPath: stat['iconPath'],
-              iconColor: stat['iconColor'],
-              title: stat['title'],
-              value: stat['value'],
-            );
-          }).toList(),
-    );
+    // 🔹 Build rows with 2 items each
+    List<Widget> rows = [];
+    for (int i = 0; i < tripStats.length; i += 2) {
+      final first = tripStats[i];
+      final second = (i + 1 < tripStats.length) ? tripStats[i + 1] : null;
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              // First item
+              Expanded(
+                child: _buildAnyValuesColumn(
+                  iconPath: first['iconPath'],
+                  iconColor: first['iconColor'],
+                  title: first['title'],
+                  value: first['value'],
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              // Second item (if exists)
+              Expanded(
+                child:
+                    second != null
+                        ? _buildAnyValuesColumn(
+                          iconPath: second['iconPath'],
+                          iconColor: second['iconColor'],
+                          title: second['title'],
+                          value: second['value'],
+                        )
+                        : const SizedBox(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 
   Widget _buildAnyValuesColumn({

@@ -6,7 +6,6 @@ import 'package:svg_flutter/svg_flutter.dart';
 import 'package:tm_fleet_management/src/utils/appColors.dart';
 
 import '../../utils/appResponsive.dart';
-import '../widgets/charts/alertsPieChart.dart';
 
 class AlertsScreen extends StatefulWidget {
   const AlertsScreen({super.key});
@@ -17,6 +16,8 @@ class AlertsScreen extends StatefulWidget {
 
 class _AlertsScreenState extends State<AlertsScreen> {
   DateTime selectedDate = DateTime.now();
+
+  int hoveredAlertIndex = -1; // add this above build()
 
   int currentPage = 1;
   int rowsPerPage = 10;
@@ -202,6 +203,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
       'SOS Triggered',
     ];
 
+    // Define color mapping for each alert type
+    final Map<String, Color> alertColors = {
+      'Power Disconnect': Colors.redAccent,
+      'GPRS Lost': Colors.orangeAccent,
+      'Over Speed': Colors.deepOrange,
+      'Ignition On': Colors.green,
+      'Ignition Off': Colors.grey,
+      'Geo Fence Alert': Colors.purpleAccent,
+      'Battery Low': Colors.amber,
+      'Tilt Alert': Colors.blueAccent,
+      'Fall Detected': Colors.pinkAccent,
+      'SOS Triggered': Colors.red,
+    };
+
     // Generate dummy alerts
     final List<Map<String, dynamic>> alerts = List.generate(100, (index) {
       final type = alertTypes[index % alertTypes.length];
@@ -219,8 +234,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
         'alertTime': DateFormat(
           'dd MMM yyyy, hh:mm a',
         ).format(DateTime.now().subtract(Duration(minutes: index * 3))),
-        'category': isCritical ? 'Critical' : 'Non-Critical',
         'type': type,
+        'alertData':
+            isCritical
+                ? 'Immediate attention required'
+                : 'Monitor status normally',
       };
     });
 
@@ -228,10 +246,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
     final startIndex = (currentPage - 1) * rowsPerPage;
     final endIndex = (startIndex + rowsPerPage).clamp(0, alerts.length);
     final currentPageAlerts = alerts.sublist(startIndex, endIndex);
-
-    Color getCategoryColor(String category) {
-      return category == 'Critical' ? tRed : tOrange1;
-    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -278,48 +292,100 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     : tBlack.withOpacity(0.1),
                             width: 0.4,
                           ),
-
                           dividerThickness: 0.01,
                           columns: const [
                             DataColumn(label: Text('IMEI Number')),
                             DataColumn(label: Text('Vehicle ID')),
                             DataColumn(label: Text('Alert Time')),
-                            DataColumn(label: Text('Category')),
                             DataColumn(label: Text('Alert Type')),
+                            DataColumn(label: Text('Alert Data')),
                           ],
                           rows:
                               currentPageAlerts.map((alert) {
+                                final color =
+                                    alertColors[alert['type']] ??
+                                    (isDark ? tBlue : Colors.blueGrey);
+
                                 return DataRow(
                                   cells: [
                                     DataCell(Text(alert['imei'])),
                                     DataCell(Text(alert['vehicleId'])),
                                     DataCell(Text(alert['alertTime'])),
                                     DataCell(
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
-                                          horizontal: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: getCategoryColor(
-                                            alert['category'],
-                                          ).withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            5,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          alert['category'],
-                                          style: GoogleFonts.urbanist(
-                                            color: getCategoryColor(
-                                              alert['category'],
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // Small circular critical/non-critical indicator
+                                          Container(
+                                            width: 10,
+                                            height: 10,
+                                            margin: const EdgeInsets.only(
+                                              right: 8,
                                             ),
-                                            fontWeight: FontWeight.bold,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  [
+                                                        'Over Speed',
+                                                        'Power Disconnect',
+                                                        'Battery Low',
+                                                        'SOS Triggered',
+                                                        'Fall Detected',
+                                                      ].contains(alert['type'])
+                                                      ? tRedDark // Critical
+                                                      : tOrange, // Non-critical
+                                              shape: BoxShape.circle,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color:
+                                                      [
+                                                            'Over Speed',
+                                                            'Power Disconnect',
+                                                            'Battery Low',
+                                                            'SOS Triggered',
+                                                            'Fall Detected',
+                                                          ].contains(
+                                                            alert['type'],
+                                                          )
+                                                          ? tRedDark
+                                                              .withOpacity(0.4)
+                                                          : tOrange.withOpacity(
+                                                            0.4,
+                                                          ),
+                                                  blurRadius: 4,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
+
+                                          // Alert type colored container
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4,
+                                              horizontal: 10,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: color.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              border: Border.all(
+                                                color: color.withOpacity(0.6),
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              alert['type'],
+                                              style: GoogleFonts.urbanist(
+                                                color: color,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    DataCell(Text(alert['type'])),
+                                    DataCell(Text(alert['alertData'])),
                                   ],
                                 );
                               }).toList(),
@@ -372,42 +438,40 @@ class _AlertsScreenState extends State<AlertsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Overview',
-          style: GoogleFonts.urbanist(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: isDark ? tWhite : tBlack,
-          ),
-        ),
-        const SizedBox(height: 10),
         Row(
           children: [
-            _buildAlertInfoCard(
+            _buildAlertInfoCard2(
+              index: 0,
               title: 'Total Alerts',
               count: '1276383',
-              iconPath: 'icons/alerts.svg',
-              gradientColor: tBlue,
+              iconPath: 'icons/alert.svg',
+              iconColor: tBlue,
+              bgColor: tBlue.withOpacity(0.1),
               isDark: isDark,
             ),
             const SizedBox(width: 10),
-            _buildAlertInfoCard(
+            _buildAlertInfoCard2(
+              index: 1,
               title: 'Critical Alerts',
               count: '12383',
-              iconPath: 'icons/alerts.svg',
-              gradientColor: tRedDark,
+              iconPath: 'icons/alert.svg',
+              iconColor: tRed,
+              bgColor: tRed.withOpacity(0.1),
               isDark: isDark,
             ),
             const SizedBox(width: 10),
-            _buildAlertInfoCard(
+            _buildAlertInfoCard2(
+              index: 2,
               title: 'Non-Critical Alerts',
               count: '12763',
-              iconPath: 'icons/alerts.svg',
-              gradientColor: tOrange1,
+              iconPath: 'icons/alert.svg',
+              iconColor: tOrange,
+              bgColor: tOrange.withOpacity(0.1),
               isDark: isDark,
             ),
           ],
         ),
+
         const SizedBox(height: 15),
         // AlertsPieChart(),
         Text(
@@ -442,53 +506,6 @@ class _AlertsScreenState extends State<AlertsScreen> {
     );
   }
 
-  // Animated Bar
-  // Widget _buildAnimatedAlertsBar(
-  //   Map<String, double> data,
-  //   Map<String, Color> colors,
-  //   bool isDark,
-  // ) {
-  //   double total = data.values.fold(0, (a, b) => a + b);
-
-  //   return Container(
-  //     width: double.infinity,
-  //     height: 60,
-  //     decoration: BoxDecoration(
-  //       border: Border.all(width: 0.3, color: isDark ? tWhite : tBlack),
-  //     ),
-  //     child: Row(
-  //       children:
-  //           data.entries.map((entry) {
-  //             double percentage = (entry.value / total);
-  //             return Expanded(
-  //               flex: (percentage * 1000).toInt(),
-  //               child: TweenAnimationBuilder<double>(
-  //                 tween: Tween<double>(begin: 0, end: percentage),
-  //                 duration: const Duration(milliseconds: 800),
-  //                 curve: Curves.easeInOut,
-  //                 builder: (context, value, child) {
-  //                   return FractionallySizedBox(
-  //                     widthFactor: value,
-  //                     alignment: Alignment.centerLeft,
-  //                     child: Container(
-  //                       decoration: BoxDecoration(
-  //                         color: colors[entry.key] ?? Colors.grey,
-  //                       ),
-  //                       child: Tooltip(
-  //                         message:
-  //                             "${entry.key}: ${(entry.value).toStringAsFixed(1)}%",
-  //                         child: Container(),
-  //                       ),
-  //                     ),
-  //                   );
-  //                 },
-  //               ),
-  //             );
-  //           }).toList(),
-  //     ),
-  //   );
-  // }
-
   Widget _buildAnimatedAlertsBar(
     Map<String, double> data,
     Map<String, Color> colors,
@@ -517,7 +534,18 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   return Expanded(
                     flex: (value * 1000).toInt().clamp(1, 1000),
                     child: Container(
-                      color: colors[entry.key] ?? tGrey,
+                      decoration: BoxDecoration(
+                        color: colors[entry.key] ?? tGrey,
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (colors[entry.key]?.withOpacity(0.4)) ??
+                                tGrey.withOpacity(0.4),
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
                       child: Tooltip(
                         message:
                             "${entry.key}: ${(entry.value).toStringAsFixed(1)}%",
@@ -623,6 +651,90 @@ class _AlertsScreenState extends State<AlertsScreen> {
               textAlign: TextAlign.center,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAlertInfoCard2({
+    required int index,
+    required String title,
+    required String count,
+    required String iconPath,
+    required Color iconColor,
+    required Color bgColor,
+    required bool isDark,
+  }) {
+    final isHovered = hoveredAlertIndex == index;
+
+    return Expanded(
+      child: MouseRegion(
+        onEnter: (_) => setState(() => hoveredAlertIndex = index),
+        onExit: (_) => setState(() => hoveredAlertIndex = -1),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: isDark ? tBlack : tWhite,
+            border: Border.all(
+              width: isHovered ? 1.3 : 0.6,
+              color:
+                  isHovered
+                      ? iconColor.withOpacity(0.7)
+                      : iconColor.withOpacity(0.4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                spreadRadius: 2,
+                blurRadius: isHovered ? 14 : 10,
+                color:
+                    isDark
+                        ? tWhite.withOpacity(0.12)
+                        : tBlack.withOpacity(0.08),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    iconPath,
+                    width: 20,
+                    height: 20,
+                    color: iconColor,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Text(
+                title,
+                style: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? tWhite : tBlack,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                count,
+                style: GoogleFonts.urbanist(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: iconColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

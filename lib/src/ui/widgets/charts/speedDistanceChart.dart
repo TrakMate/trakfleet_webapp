@@ -55,7 +55,7 @@ class _SpeedDistanceChartState extends State<SpeedDistanceChart> {
         ),
         const SizedBox(height: 10),
         SizedBox(
-          height: 150,
+          height: 160,
           child: Stack(
             children: [
               LineChart(

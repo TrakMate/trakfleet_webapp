@@ -1,9 +1,24 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+import 'package:svg_flutter/svg.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
+
+class ReportCardModel {
+  final String title;
+  final String description;
+  final String icon;
+  final Color bgColor;
+  final Color iconColor;
+
+  ReportCardModel({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.bgColor,
+    required this.iconColor,
+  });
+}
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -13,271 +28,235 @@ class ReportsScreen extends StatefulWidget {
 }
 
 class _ReportsScreenState extends State<ReportsScreen> {
-  DateTime selectedDate = DateTime.now();
-  String _selectedMenu = 'Devices';
+  int hoveredIndex = -1;
+  int selectedIndex = 0;
+
+  final List<ReportCardModel> reportCards = [
+    // 1. Vehicles Report
+    ReportCardModel(
+      title: 'Vehicles\nReport',
+      description: 'Details and analytics of all connected vehicles & devices.',
+      icon: 'icons/car.svg',
+      bgColor: tBlue.withOpacity(0.1),
+      iconColor: tBlue,
+    ),
+
+    // 2. Vehicle Summary Report
+    ReportCardModel(
+      title: 'Vehicle Summary\nReport',
+      description: 'Daily summary of vehicle status, movement, and activity.',
+      icon: 'icons/summary.svg',
+      bgColor: Colors.purpleAccent.withOpacity(0.1),
+      iconColor: Colors.purpleAccent,
+    ),
+
+    // 3. Trips Report
+    ReportCardModel(
+      title: 'Trips\nReport',
+      description: 'Insights and analytics of trips and route details.',
+      icon: 'icons/distance.svg',
+      bgColor: tGreen.withOpacity(0.1),
+      iconColor: tGreen,
+    ),
+
+    // 4. Alerts Report
+    ReportCardModel(
+      title: 'Alerts\nReport',
+      description: 'Summary of different alerts triggered from vehicles.',
+      icon: 'icons/alerts.svg',
+      bgColor: tRed.withOpacity(0.1),
+      iconColor: tRed,
+    ),
+
+    // 5. Geofence Alerts Report
+    ReportCardModel(
+      title: 'Geofence Alerts\nReport',
+      description: 'Entry/Exit alerts inside configured geofence zones.',
+      icon: 'icons/geofence.svg',
+      bgColor: tOrange.withOpacity(0.1),
+      iconColor: tOrange,
+    ),
+
+    // 6. Miscellaneous Report
+    ReportCardModel(
+      title: 'Miscellaneous\nReport',
+      description: 'Other supportive reports based on your data.',
+      icon: 'icons/miscellaneous.svg',
+      bgColor: tGrey.withOpacity(0.1),
+      iconColor: tGrey,
+    ),
+  ];
+
+  List<List<T>> chunkList<T>(List<T> list, int size) {
+    List<List<T>> chunks = [];
+    for (int i = 0; i < list.length; i += size) {
+      chunks.add(
+        list.sublist(i, (i + size) > list.length ? list.length : i + size),
+      );
+    }
+    return chunks;
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ResponsiveLayout(
-      mobile: _buildLayout(isDark),
-      tablet: _buildLayout(isDark),
-      desktop: _buildLayout(isDark),
+      mobile: _buildMobileLayout(isDark),
+      tablet: _buildMobileLayout(isDark),
+      desktop: _buildDesktopLayout(isDark),
     );
   }
 
-  Widget _buildLayout(bool isDark) {
+  Widget _buildMobileLayout(bool isDark) {
+    return Container();
+  }
+
+  Widget _buildDesktopLayout(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildTitle(isDark),
-            Row(
-              children: [
-                _buildFilterBySearch(isDark),
-                const SizedBox(width: 10),
-                _buildDynamicDatePicker(isDark),
-              ],
-            ),
-          ],
+        Text(
+          'Reports',
+          style: GoogleFonts.urbanist(
+            fontSize: 20,
+            color: isDark ? tWhite : tBlack,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 10),
-        _buildReportsMenuBar(),
-        const SizedBox(height: 20),
-        Expanded(child: _buildTabContent(isDark)),
-      ],
-    );
-  }
-
-  Widget _buildTitle(bool isDark) => Text(
-    'Reports',
-    style: GoogleFonts.urbanist(
-      fontSize: 20,
-      color: isDark ? tWhite : tBlack,
-      fontWeight: FontWeight.bold,
-    ),
-  );
-
-  Widget _buildFilterBySearch(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 250,
-          height: 40,
-          decoration: BoxDecoration(
-            color: tTransparent,
-            border: Border.all(color: isDark ? tWhite : tBlack, width: 1),
-          ),
-          child: TextField(
-            style: GoogleFonts.urbanist(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: isDark ? tWhite : tBlack,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Search',
-              hintStyle: GoogleFonts.urbanist(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark ? tWhite : tBlack,
-              ),
-              border: InputBorder.none,
-              prefixIcon: Icon(
-                CupertinoIcons.search,
-                color: isDark ? tWhite : tBlack,
-                size: 18,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          '(Note: Filter by Search)',
-          style: GoogleFonts.urbanist(
-            fontSize: 10,
-            color: isDark ? tWhite.withOpacity(0.6) : tBlack.withOpacity(0.6),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDynamicDatePicker(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: _selectDate,
-          child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: tTransparent,
-              border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
-            ),
-            child: Center(
-              child: Text(
-                DateFormat('dd MMM yyyy').format(selectedDate).toUpperCase(),
-                style: GoogleFonts.urbanist(
-                  fontSize: 12.5,
-                  color: isDark ? tWhite : tBlack,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          '(Note: Filter by Date)',
-          style: GoogleFonts.urbanist(
-            fontSize: 10,
-            color: isDark ? tWhite.withOpacity(0.6) : tBlack.withOpacity(0.6),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _selectDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-      builder:
-          (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: Colors.blueAccent,
-                onPrimary: Colors.white,
-                onSurface: Colors.black,
-              ),
-            ),
-            child: child!,
-          ),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() => selectedDate = picked);
-    }
-  }
-
-  Widget _buildReportsMenuBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final List<String> menus = ['Devices', 'Trips', 'Alerts', 'Stats'];
-
-    return Container(
-      // width: double.infinity,
-      width: 700,
-      height: 40,
-      decoration: BoxDecoration(
-        color: tTransparent,
-        border: Border.all(
-          // top: BorderSide(color: tBlue, width: 0.5),
-          // bottom: BorderSide(color: tBlue, width: 0.5),
-          color: isDark ? tWhite : tBlack,
-          width: 0.4,
-        ),
-      ),
-      padding: EdgeInsets.all(5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children:
-            menus.map((label) {
-              final bool isSelected = _selectedMenu == label;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedMenu = label),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isSelected ? tBlue : tTransparent,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Text(
-                      label,
-                      style: GoogleFonts.urbanist(
-                        fontSize: 13,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color:
-                            isSelected
-                                ? tWhite
-                                : (isDark ? tWhite : tBlack.withOpacity(0.8)),
-                      ),
-                      textAlign: TextAlign.center,
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(flex: 4, child: _buildReportCards(isDark)),
+              Expanded(
+                flex: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    reportCards[selectedIndex].title + " DATA WILL APPEAR HERE",
+                    style: GoogleFonts.urbanist(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? tWhite : tBlack,
                     ),
                   ),
                 ),
-              );
-            }).toList(),
-      ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  /// Dynamically loads tab content
-  Widget _buildTabContent(bool isDark) {
-    switch (_selectedMenu) {
-      case 'Trips':
-        return _buildTripsReport(isDark);
-      case 'Alerts':
-        return _buildAlertsReport(isDark);
-      case 'Stats':
-        return _buildStatsReport(isDark);
-      case 'Devices':
-      default:
-        return _buildDevicesReport(isDark);
-    }
+  Widget _buildReportCards(bool isDark) {
+    return GridView.builder(
+      // padding: const EdgeInsets.all(10),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 3 items per row
+        crossAxisSpacing: 15,
+        mainAxisSpacing: 15,
+        childAspectRatio: 0.6, // Adjust card height/width
+      ),
+      itemCount: reportCards.length,
+      itemBuilder: (context, index) {
+        return _buildSingleCard(reportCards[index], index, isDark);
+      },
+    );
   }
 
-  // Sample placeholder widgets for each tab
-  Widget _buildDevicesReport(bool isDark) => Center(
-    child: Text(
-      'Devices Report Content',
-      style: GoogleFonts.urbanist(
-        fontSize: 16,
-        color: isDark ? tWhite : tBlack,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  );
+  Widget _buildSingleCard(ReportCardModel card, int index, bool isDark) {
+    final isHovered = hoveredIndex == index;
+    final isSelected = selectedIndex == index;
 
-  Widget _buildTripsReport(bool isDark) => Center(
-    child: Text(
-      'Trips Report Content',
-      style: GoogleFonts.urbanist(
-        fontSize: 16,
-        color: isDark ? tWhite : tBlack,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  );
+    return MouseRegion(
+      onEnter: (_) => setState(() => hoveredIndex = index),
+      onExit: (_) => setState(() => hoveredIndex = -1),
+      child: GestureDetector(
+        onTap: () => setState(() => selectedIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: isDark ? tBlack : tWhite,
+            // borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              width:
+                  isSelected
+                      ? 2
+                      : isHovered
+                      ? 1.3
+                      : 0,
+              color:
+                  isSelected
+                      ? card.iconColor
+                      : isHovered
+                      ? card.iconColor.withOpacity(0.6)
+                      : Colors.transparent,
+            ),
+            boxShadow: [
+              BoxShadow(
+                spreadRadius: 2,
+                blurRadius: 12,
+                color:
+                    isDark ? tWhite.withOpacity(0.12) : tBlack.withOpacity(0.1),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 55,
+                height: 55,
+                decoration: BoxDecoration(
+                  color: card.bgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Center(
+                  child: SvgPicture.asset(
+                    card.icon,
+                    width: 28,
+                    height: 28,
+                    color: card.iconColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                card.title,
+                style: GoogleFonts.urbanist(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? tWhite : tBlack,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                card.description,
+                style: GoogleFonts.urbanist(
+                  fontSize: 12,
+                  color: (isDark ? tWhite : tBlack).withOpacity(0.55),
+                ),
+              ),
+              const Spacer(),
+              const SizedBox(height: 25),
 
-  Widget _buildAlertsReport(bool isDark) => Center(
-    child: Text(
-      'Alerts Report Content',
-      style: GoogleFonts.urbanist(
-        fontSize: 16,
-        color: isDark ? tWhite : tBlack,
-        fontWeight: FontWeight.w500,
+              Align(
+                alignment: Alignment.bottomRight,
+                child: SvgPicture.asset(
+                  'icons/arrow.svg',
+                  width: 22,
+                  height: 22,
+                  color: card.iconColor,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-    ),
-  );
-
-  Widget _buildStatsReport(bool isDark) => Center(
-    child: Text(
-      'Stats Report Content',
-      style: GoogleFonts.urbanist(
-        fontSize: 16,
-        color: isDark ? tWhite : tBlack,
-        fontWeight: FontWeight.w500,
-      ),
-    ),
-  );
+    );
+  }
 }
