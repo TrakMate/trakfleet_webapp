@@ -74,18 +74,17 @@ class _VehicleUtilizationChartState extends State<VehicleUtilizationChart> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Vehicle Utilization Overview',
+              'Vehicle Utilization ',
               style: GoogleFonts.urbanist(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: isDark ? tWhite : tBlack,
               ),
             ),
             Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? tWhite.withOpacity(0.1) : tBlack.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(10),
+                color: tGrey.withOpacity(0.1),
+                // borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(5),
               child: Row(
@@ -298,14 +297,14 @@ class _VehicleUtilizationChartState extends State<VehicleUtilizationChart> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? (isDark ? tWhite : tBlack) : Colors.transparent,
-          borderRadius: BorderRadius.circular(5),
+          color: isSelected ? (isDark ? tWhite : tBlack) : tTransparent,
+          // borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
           label,
           style: GoogleFonts.urbanist(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color:
                 isSelected
                     ? (isDark ? tBlack : tWhite)

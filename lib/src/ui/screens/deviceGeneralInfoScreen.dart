@@ -8,10 +8,13 @@ import 'package:svg_flutter/svg_flutter.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appLogger.dart';
 import '../../utils/appResponsive.dart';
+import '../components/largeHoverCard.dart';
+import '../components/smallHoverCard.dart';
 import '../widgets/charts/alertsChart.dart';
 import '../widgets/charts/doughnutChart.dart';
 import '../widgets/charts/speedDistanceChart.dart';
 import '../widgets/charts/tripsChart.dart';
+import '../widgets/charts/tripsDoughnutChart.dart';
 
 class DeviceGeneralInfoScreen extends StatefulWidget {
   final Map<String, dynamic> device;
@@ -194,9 +197,9 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                   Row(
                     children: [
                       Expanded(
-                        flex: 4,
+                        flex: 3,
                         child: Container(
-                          height: 330,
+                          height: 450,
                           decoration: BoxDecoration(
                             color: isDark ? tBlack : tWhite,
                             boxShadow: [
@@ -210,23 +213,75 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                               ),
                             ],
                           ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 15,
-                            vertical: 6,
-                          ),
+                          padding: const EdgeInsets.all(10),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildTripsHeaderSection(isDark),
-                              Divider(
-                                color:
-                                    isDark
-                                        ? tWhite.withOpacity(0.6)
-                                        : tBlack.withOpacity(0.6),
-                                thickness: 0.6,
+                              Text(
+                                'Alerts Overview',
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? tWhite : tBlack,
+                                ),
                               ),
-                              SizedBox(height: 5),
-                              _buildTripsBottomSection(),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  LargeHoverCard(
+                                    value: "756",
+                                    label: "Alerts",
+                                    labelColor: tRed,
+                                    icon: "icons/alert.svg",
+                                    iconColor: tRed,
+                                    bgColor: tRed.withOpacity(0.1),
+                                    isDark: isDark,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Column(
+                                      children: [
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "53",
+                                          label: "Non-Critical Alerts",
+                                          labelColor: tBlueSky,
+                                          icon: "icons/alert.svg",
+                                          iconColor: tBlueSky,
+                                          bgColor: tBlueSky.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "53",
+                                          label: "Critical Alerts",
+                                          labelColor: tOrange1,
+                                          icon: "icons/alert.svg",
+                                          iconColor: tOrange1,
+                                          bgColor: tOrange1.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 10),
+                              Expanded(
+                                child: Container(
+                                  height: 250,
+                                  decoration: BoxDecoration(
+                                    color: tTransparent,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: _buildAlertsWidget(isDark: isDark),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -235,7 +290,7 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                       Expanded(
                         flex: 5,
                         child: Container(
-                          height: 330,
+                          height: 450,
                           decoration: BoxDecoration(
                             color: isDark ? tBlack : tWhite,
                             boxShadow: [
@@ -249,15 +304,154 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                               ),
                             ],
                           ),
-                          padding: EdgeInsets.all(5),
-                          child: buildVehicleMap(isDark: isDark, zoom: 16),
+                          padding: EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Trips Overview',
+                                style: GoogleFonts.urbanist(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? tWhite : tBlack,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  LargeHoverCard(
+                                    value: "50,678",
+                                    label: "Trips",
+                                    labelColor: tGreen,
+                                    icon: "icons/distance.svg",
+                                    iconColor: tGreen,
+                                    bgColor: tGreen.withOpacity(0.1),
+                                    isDark: isDark,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Column(
+                                      children: [
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "45,256",
+                                          label: "Completed Trips",
+                                          labelColor: tBlue,
+                                          icon: "icons/completed.svg",
+                                          iconColor: tBlue,
+                                          bgColor: tBlue.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "5,345",
+                                          label: "Avg. Trips",
+                                          labelColor: tOrange1,
+                                          icon: "icons/distance.svg",
+                                          iconColor: tOrange1,
+                                          bgColor: tOrange1.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+
+                                  Expanded(
+                                    flex: 2,
+                                    child: Column(
+                                      children: [
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "12,456",
+                                          label: "Dist. Travelled(km)",
+                                          labelColor: tGreenDark,
+                                          icon: "icons/distance.svg",
+                                          iconColor: tGreenDark,
+                                          bgColor: tGreenDark.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "2,456",
+                                          label: "Avg.Dist. Travelled(km)",
+                                          labelColor: tBlueSky,
+                                          icon: "icons/distance.svg",
+                                          iconColor: tBlueSky,
+                                          bgColor: tBlueSky.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Column(
+                                      children: [
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "2,456",
+                                          label: "Oper. Hours(hrs)",
+                                          labelColor: tPink,
+                                          icon: "icons/consumedhours.svg",
+                                          iconColor: tPink,
+                                          bgColor: tPink.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        SmallHoverCard(
+                                          width: double.infinity,
+                                          height: 85,
+                                          value: "456",
+                                          label: "Avg.Oper. Hours(hrs)",
+                                          labelColor: tRed,
+                                          icon: "icons/consumedhours.svg",
+                                          iconColor: tRed,
+                                          bgColor: tRed.withOpacity(0.1),
+                                          isDark: isDark,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    flex: 7,
+                                    child: Container(
+                                      height: 200,
+                                      decoration: BoxDecoration(
+                                        color: tTransparent,
+                                      ),
+                                      child: SingleChildScrollView(
+                                        child: _buildAlertsWidget(
+                                          isDark: isDark,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        flex: 4,
+                        flex: 3,
                         child: Container(
-                          height: 330,
+                          height: 450,
                           decoration: BoxDecoration(
                             color: isDark ? tBlack : tWhite,
                             boxShadow: [
@@ -271,36 +465,8 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                               ),
                             ],
                           ),
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildAlertsHeaderSection(isDark),
-                              Divider(
-                                color:
-                                    isDark
-                                        ? tWhite.withOpacity(0.6)
-                                        : tBlack.withOpacity(0.6),
-                                thickness: 0.6,
-                              ),
-                              _buildAlertsBottomSection(),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Alerts Info',
-                                style: GoogleFonts.urbanist(
-                                  fontSize: 14,
-                                  color: isDark ? tWhite : tBlack,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  child: _buildAlertsWidget(isDark: isDark),
-                                ),
-                              ),
-                            ],
-                          ),
+                          padding: const EdgeInsets.all(2),
+                          child: buildVehicleMap(isDark: isDark, zoom: 16),
                         ),
                       ),
                     ],
@@ -352,7 +518,7 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Vehicle Status (Past 24 Hours)',
+                                'Vehicle Status',
                                 style: GoogleFonts.urbanist(
                                   fontSize: 13,
                                   color: isDark ? tWhite : tBlack,
@@ -864,7 +1030,7 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
             ),
           ),
 
-          // ✅ Tooltip data (unchanged)
+          // Tooltip data (unchanged)
           barTouchData: BarTouchData(
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
@@ -934,7 +1100,9 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
 
             final rods =
                 data.entries.map((e) {
-                  final color = statusColors[e.key] ?? tBlack;
+                  final color = statusColors[e.key]!.withOpacity(
+                    0.9,
+                  ); //?? tBlack;
                   final endY = startY + (e.value / totalMins) * 60;
                   final item = BarChartRodStackItem(startY, endY, color);
                   startY = endY;
@@ -1208,10 +1376,7 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
     }
 
     final deviceStatus = widget.device['status'] ?? 'unknown';
-    final tileUrl =
-        isDark
-            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+    final tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     String getTruckIcon(String status) {
       switch (status.toLowerCase()) {
@@ -1328,95 +1493,84 @@ class _DeviceGeneralInfoScreenState extends State<DeviceGeneralInfoScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ...alerts.map((alert) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6.0),
-            child: Container(
-              width: double.infinity,
-              margin: const EdgeInsets.only(bottom: 4, top: 4),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: isDark ? tBlack : tWhite,
-                boxShadow: [
-                  BoxShadow(
-                    spreadRadius: 1,
-                    blurRadius: 6,
-                    color:
-                        isDark
-                            ? tWhite.withOpacity(0.1)
-                            : tBlack.withOpacity(0.1),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Vehicle ID + IMEI
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Vehicle: ${alert['vehicleId']}',
-                        style: GoogleFonts.urbanist(
-                          color: isDark ? tWhite : tBlack,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? tBlack : tWhite,
+              boxShadow: [
+                BoxShadow(
+                  spreadRadius: 1,
+                  blurRadius: 6,
+                  color:
+                      isDark
+                          ? tWhite.withOpacity(0.1)
+                          : tBlack.withOpacity(0.1),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                /// Vehicle ID + IMEI
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vehicle: ${alert['vehicleId']}',
+                      style: GoogleFonts.urbanist(
+                        color: isDark ? tWhite : tBlack,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        'IMEI: ${alert['imei']}',
-                        style: GoogleFonts.urbanist(
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                          fontSize: 11,
-                        ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'IMEI: ${alert['imei']}',
+                      style: GoogleFonts.urbanist(
+                        color: isDark ? Colors.grey[300] : Colors.grey[700],
+                        fontSize: 11,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
 
-                  // Date & Time
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        alert['dateTime']!,
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[300] : Colors.grey[800],
-                          fontSize: 11,
-                        ),
+                /// Date + Alert type
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      alert['dateTime']!,
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[300] : Colors.grey[800],
+                        fontSize: 11,
                       ),
-                      const SizedBox(height: 3),
-                      // Alert Type
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          // color: getAlertColor(alert['alertType']!),
-                          gradient: SweepGradient(
-                            colors: [
-                              getAlertColor(alert['alertType']!),
-                              getAlertColor(
-                                alert['alertType']!,
-                              ).withOpacity(0.5),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
+                    ),
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: getAlertColor(
                           alert['alertType']!,
-                          style: GoogleFonts.urbanist(
-                            color: isDark ? tBlack : tWhite,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        ).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        alert['alertType']!,
+                        style: GoogleFonts.urbanist(
+                          color: getAlertColor(alert['alertType']!),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           );
         }).toList(),

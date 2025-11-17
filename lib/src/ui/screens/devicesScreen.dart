@@ -10,6 +10,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:svg_flutter/svg_flutter.dart';
 import '../../utils/appColors.dart';
 import '../../utils/appResponsive.dart';
+import '../../utils/route/navigation_helpers.dart';
 
 class DevicesScreen extends StatefulWidget {
   final String? filterStatus; // can be 'moving', 'stopped', etc.
@@ -1356,15 +1357,20 @@ class _DevicesScreenState extends State<DevicesScreen> {
                                           horizontal: 6,
                                         ),
                                         child: GestureDetector(
-                                          onTap: () {
-                                            context.pushNamed(
-                                              'deviceDetail',
-                                              pathParameters: {
-                                                'imei': device['imei'],
-                                              },
-                                              extra: device,
-                                            );
-                                          },
+                                          // onTap: () {
+                                          //   context.pushNamed(
+                                          //     'deviceDetail',
+                                          //     pathParameters: {
+                                          //       'imei': device['imei'],
+                                          //     },
+                                          //     extra: device,
+                                          //   );
+                                          // },
+                                          onTap:
+                                              () => openDeviceOverview(
+                                                context,
+                                                device,
+                                              ),
                                           child: buildDeviceCard(
                                             isDark: isDark,
                                             imei: device['imei'],

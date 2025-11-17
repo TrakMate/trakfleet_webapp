@@ -28,44 +28,17 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
   late int selectedIndex;
   DateTime selectedDate = DateTime.now();
 
-  Map<String, dynamic>? deviceData;
-  bool isLoading = false;
-
   @override
   void initState() {
     super.initState();
     selectedIndex = widget.initialTab;
-    // _initDeviceData();
   }
-
-  // Future<void> _initDeviceData() async {
-  //   // If we already have a full device object, just assign it
-  //   if (widget.device.isNotEmpty && widget.device.keys.length > 1) {
-  //     setState(() => deviceData = widget.device);
-  //     LoggerUtil.getInstance.print(
-  //       'Loaded device from extra: ${widget.device['imei']}',
-  //     );
-  //   }
-  //   // Else fetch by IMEI
-  //   else if (widget.device['imei'] != null) {
-  //     setState(() => isLoading = true);
-  //     final imei = widget.device['imei'];
-  //     try {
-  //       final fetchedDevice = await DeviceService.fetchDeviceByImei(imei);
-  //       setState(() {
-  //         deviceData = fetchedDevice;
-  //         isLoading = false;
-  //       });
-  //       LoggerUtil.getInstance.print('Fetched full device info for $imei');
-  //     } catch (e) {
-  //       LoggerUtil.getInstance.print('Error fetching device info: $e');
-  //       setState(() => isLoading = false);
-  //     }
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
+    // Always sync UI with router tab
+    selectedIndex = widget.initialTab;
+
     return ResponsiveLayout(
       mobile: const Center(child: Text("Mobile / Tablet layout coming soon")),
       tablet: const Center(child: Text("Mobile / Tablet layout coming soon")),
@@ -75,70 +48,19 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
 
   Widget _buildDesktopLayout(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final device = widget.device;
-    LoggerUtil.getInstance.print(device);
+
+    LoggerUtil.getInstance.print(widget.device);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tab Container
+        /// ---------------------------
+        /// Top Row (Tabs + Date Filter)
+        /// ---------------------------
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              width: 450,
-              height: 40,
-              decoration: BoxDecoration(
-                border: Border.all(color: isDark ? tWhite : tBlack, width: 0.6),
-              ),
-              padding: const EdgeInsets.all(5),
-              child: Row(
-                children: [
-                  _buildTabButton(
-                    "Overview",
-                    0,
-                    selectedIndex,
-                    (i) {
-                      setState(() => selectedIndex = i);
-                      context.go(
-                        '/home/devices/${widget.device['imei']}/overview',
-                        extra: widget.device,
-                      );
-                    },
-                    context,
-                    isDark,
-                  ),
-                  _buildTabButton(
-                    "Diagnostics",
-                    1,
-                    selectedIndex,
-                    (i) {
-                      setState(() => selectedIndex = i);
-                      context.go(
-                        '/home/devices/${widget.device['imei']}/diagnostics',
-                        extra: widget.device,
-                      );
-                    },
-                    context,
-                    isDark,
-                  ),
-                  _buildTabButton(
-                    "Configuration",
-                    2,
-                    selectedIndex,
-                    (i) {
-                      setState(() => selectedIndex = i);
-                      context.go(
-                        '/home/devices/${widget.device['imei']}/configuration',
-                        extra: widget.device,
-                      );
-                    },
-                    context,
-                    isDark,
-                  ),
-                ],
-              ),
-            ),
+            _buildTabBar(context, isDark),
             Row(
               children: [
                 _buildLabelBox("Filter By Date", tBlue, isDark),
@@ -151,35 +73,69 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
 
         const SizedBox(height: 10),
 
-        //Dynamic content based on selected tab
+        /// ---------------------------
+        /// Dynamic Screen Content
+        /// ---------------------------
         Expanded(
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
-            child:
-                selectedIndex == 0
-                    ? DeviceGeneralInfoScreen(device: widget.device)
-                    : selectedIndex == 1
-                    ? DeviceDiagnosticsInfoScreen(device: widget.device)
-                    : DeviceConfigInfoScreen(device: widget.device),
+            child: _buildTabContent(),
           ),
         ),
       ],
     );
   }
 
+  /// ----------------------------------------------
+  /// Build Tab Bar
+  /// ----------------------------------------------
+  Widget _buildTabBar(BuildContext context, bool isDark) {
+    return Container(
+      width: 450,
+      height: 40,
+      decoration: BoxDecoration(
+        border: Border.all(color: isDark ? tWhite : tBlack, width: 0.6),
+      ),
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        children: [
+          _buildTabButton("Overview", 0, () {
+            context.go(
+              '/home/devices/${widget.device['imei']}/overview',
+              extra: widget.device,
+            );
+          }, isDark),
+          _buildTabButton("Diagnostics", 1, () {
+            context.go(
+              '/home/devices/${widget.device['imei']}/diagnostics',
+              extra: widget.device,
+            );
+          }, isDark),
+          _buildTabButton("Configuration", 2, () {
+            context.go(
+              '/home/devices/${widget.device['imei']}/configuration',
+              extra: widget.device,
+            );
+          }, isDark),
+        ],
+      ),
+    );
+  }
+
+  /// ----------------------------------------------
+  /// Reusable Tab Button
+  /// ----------------------------------------------
   Widget _buildTabButton(
     String label,
     int index,
-    int selectedIndex,
-    void Function(int) onSelected,
-    BuildContext context,
+    VoidCallback onTap,
     bool isDark,
   ) {
     final isSelected = selectedIndex == index;
 
     return Expanded(
       child: TextButton(
-        onPressed: () => onSelected(index),
+        onPressed: onTap,
         style: TextButton.styleFrom(
           backgroundColor: isSelected ? tBlue : (isDark ? tBlack : tWhite),
           foregroundColor: isSelected ? tWhite : (isDark ? tWhite : tBlack),
@@ -191,27 +147,50 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
-          textAlign: TextAlign.center,
         ),
       ),
     );
   }
 
+  /// ----------------------------------------------
+  /// Tab content based on selectedIndex
+  /// ----------------------------------------------
+  Widget _buildTabContent() {
+    if (selectedIndex == 0) {
+      return DeviceGeneralInfoScreen(
+        device: widget.device,
+        key: const ValueKey(0),
+      );
+    } else if (selectedIndex == 1) {
+      return DeviceDiagnosticsInfoScreen(
+        device: widget.device,
+        key: const ValueKey(1),
+      );
+    } else {
+      return DeviceConfigInfoScreen(
+        device: widget.device,
+        key: const ValueKey(2),
+      );
+    }
+  }
+
+  /// ----------------------------------------------
+  /// Date Picker UI
+  /// ----------------------------------------------
   Widget _buildDynamicDatePicker(bool isDark) {
     return GestureDetector(
       onTap: _selectDate,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: tTransparent,
           border: Border.all(width: 0.6, color: isDark ? tWhite : tBlack),
         ),
         child: Text(
           DateFormat('dd MMM yyyy').format(selectedDate).toUpperCase(),
           style: GoogleFonts.urbanist(
             fontSize: 12.5,
-            color: isDark ? tWhite : tBlack,
             fontWeight: FontWeight.w600,
+            color: isDark ? tWhite : tBlack,
           ),
         ),
       ),
@@ -224,36 +203,28 @@ class _DeviceControlWidgetState extends State<DeviceControlWidget> {
       initialDate: selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
-      builder:
-          (context, child) => Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: Colors.blueAccent,
-                onPrimary: Colors.white,
-                onSurface: Colors.black,
-              ),
-            ),
-            child: child!,
-          ),
     );
+
     if (picked != null && picked != selectedDate) {
       setState(() => selectedDate = picked);
     }
   }
 
+  /// ----------------------------------------------
+  /// Utility Label Box
+  /// ----------------------------------------------
   Widget _buildLabelBox(String text, Color textColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: tTransparent,
         border: Border.all(width: 0.5, color: isDark ? tWhite : tBlack),
       ),
       child: Text(
         text,
         style: GoogleFonts.urbanist(
           fontSize: 12,
-          color: textColor,
           fontWeight: FontWeight.w500,
+          color: textColor,
         ),
       ),
     );

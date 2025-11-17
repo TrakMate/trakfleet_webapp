@@ -30,14 +30,14 @@ class _HomeScreenState extends State<HomeScreen> {
       'route': '/home/dashboard',
     },
     {'icon': 'icons/device.svg', 'label': 'Devices', 'route': '/home/devices'},
-    {'icon': 'icons/trip.svg', 'label': 'Trips', 'route': '/home/trips'},
+    {'icon': 'icons/distance.svg', 'label': 'Trips', 'route': '/home/trips'},
     // {
     //   'icon': 'icons/tracking.svg',
     //   'label': 'Tracking',
     //   'route': '/home/tracking',
     // },
+    {'icon': 'icons/alert.svg', 'label': 'Alerts', 'route': '/home/alerts'},
     {'icon': 'icons/reports.svg', 'label': 'reports', 'route': '/home/reports'},
-    {'icon': 'icons/alerts.svg', 'label': 'Alerts', 'route': '/home/alerts'},
     {
       'icon': 'icons/settings.svg',
       'label': 'Settings',
@@ -435,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ? tBlue
                                       : (isDark ? tWhite : tBlack),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 3),
                             Text(
                               menu['label']!,
                               style: GoogleFonts.urbanist(
