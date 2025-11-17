@@ -289,7 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // TODO: open edit dialog
                 },
                 child: SvgPicture.asset(
-                  "assets/icons/edit.svg",
+                  "icons/edit.svg",
                   width: 18,
                   height: 18,
                   color: isDark ? tWhite : tBlack,
