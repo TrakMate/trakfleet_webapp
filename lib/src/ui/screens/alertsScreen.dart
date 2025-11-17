@@ -331,8 +331,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                                         'SOS Triggered',
                                                         'Fall Detected',
                                                       ].contains(alert['type'])
-                                                      ? tRedDark // Critical
-                                                      : tOrange, // Non-critical
+                                                      ? tOrange1 // Critical
+                                                      : tBlueSky, // Non-critical
                                               shape: BoxShape.circle,
                                               boxShadow: [
                                                 BoxShadow(
@@ -346,11 +346,10 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                                           ].contains(
                                                             alert['type'],
                                                           )
-                                                          ? tRedDark
+                                                          ? tOrange1
                                                               .withOpacity(0.4)
-                                                          : tOrange.withOpacity(
-                                                            0.4,
-                                                          ),
+                                                          : tBlueSky
+                                                              .withOpacity(0.4),
                                                   blurRadius: 4,
                                                   spreadRadius: 1,
                                                 ),
@@ -440,38 +439,51 @@ class _AlertsScreenState extends State<AlertsScreen> {
       children: [
         Row(
           children: [
-            _buildAlertInfoCard2(
+            _buildAlertInfoCard(
               index: 0,
               title: 'Total Alerts',
-              count: '1276383',
+              count: '6,383',
               iconPath: 'icons/alert.svg',
               iconColor: tBlue,
               bgColor: tBlue.withOpacity(0.1),
               isDark: isDark,
             ),
             const SizedBox(width: 10),
-            _buildAlertInfoCard2(
+            _buildAlertInfoCard(
               index: 1,
-              title: 'Critical Alerts',
-              count: '12383',
-              iconPath: 'icons/alert.svg',
+              title: 'Faults',
+              count: '383',
+              iconPath: 'icons/flagged.svg',
               iconColor: tRed,
               bgColor: tRed.withOpacity(0.1),
               isDark: isDark,
             ),
-            const SizedBox(width: 10),
-            _buildAlertInfoCard2(
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _buildAlertInfoCard(
               index: 2,
-              title: 'Non-Critical Alerts',
-              count: '12763',
+              title: 'Critical Alerts',
+              count: '2,383',
               iconPath: 'icons/alert.svg',
-              iconColor: tOrange,
-              bgColor: tOrange.withOpacity(0.1),
+              iconColor: tOrange1,
+              bgColor: tOrange1.withOpacity(0.1),
+              isDark: isDark,
+            ),
+            const SizedBox(width: 10),
+            _buildAlertInfoCard(
+              index: 3,
+              title: 'Non-Critical Alerts',
+              count: '2,763',
+              iconPath: 'icons/alert.svg',
+              iconColor: tBlueSky,
+              bgColor: tBlueSky.withOpacity(0.1),
               isDark: isDark,
             ),
           ],
         ),
-
         const SizedBox(height: 15),
         // AlertsPieChart(),
         Text(
@@ -596,67 +608,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     );
   }
 
-  /// Reusable widget for alert info cards
   Widget _buildAlertInfoCard({
-    required String title,
-    required String count,
-    required String iconPath,
-    required Color gradientColor,
-    required bool isDark,
-  }) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: SweepGradient(
-            colors: [
-              gradientColor.withOpacity(0.6),
-              gradientColor.withOpacity(0.2),
-            ],
-          ),
-        ),
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.urbanist(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? tWhite : tBlack,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SvgPicture.asset(
-                  iconPath,
-                  width: 25,
-                  height: 25,
-                  color: gradientColor,
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              count,
-              style: GoogleFonts.urbanist(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: isDark ? tWhite : tBlack,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAlertInfoCard2({
     required int index,
     required String title,
     required String count,
@@ -694,8 +646,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 width: 40,
@@ -714,24 +666,28 @@ class _AlertsScreenState extends State<AlertsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 10),
-
-              Text(
-                title,
-                style: GoogleFonts.urbanist(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? tWhite : tBlack,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                count,
-                style: GoogleFonts.urbanist(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: iconColor,
-                ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.urbanist(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? tWhite : tBlack,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    count,
+                    style: GoogleFonts.urbanist(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: iconColor,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

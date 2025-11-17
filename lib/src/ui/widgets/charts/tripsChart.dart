@@ -81,18 +81,17 @@ class _TripsChartState extends State<TripsChart> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Trips Overview',
+              'Trips',
               style: GoogleFonts.urbanist(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: isDark ? tWhite : tBlack,
               ),
             ),
             Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? tWhite.withOpacity(0.1) : tBlack.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(10),
+                color: tGrey.withOpacity(0.1),
+                // borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(5),
               child: Row(
@@ -108,7 +107,7 @@ class _TripsChartState extends State<TripsChart> {
 
         // Chart
         SizedBox(
-          height: 190,
+          height: 200,
           child: Stack(
             children: [
               BarChart(
@@ -160,7 +159,7 @@ class _TripsChartState extends State<TripsChart> {
                       getTooltipColor: (group) => isDark ? tWhite : tBlack,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final data = chartData[group.x.toInt()];
-                        final legendColors = [tBlue, tGreen, tOrange1];
+                        final legendColors = [tBlue, tGreen, tPink];
                         final legendLabels = ["Trips", "Distance", "Hours"];
                         final legendValues = [
                           "${data["trips"]}",
@@ -266,7 +265,7 @@ class _TripsChartState extends State<TripsChart> {
                             ),
                             BarChartRodData(
                               toY: item["hours"].toDouble() * 10,
-                              color: tOrange1.withOpacity(0.9),
+                              color: tPink.withOpacity(0.9),
                               width: 8,
                               borderRadius: BorderRadius.circular(0),
                             ),
@@ -306,10 +305,7 @@ class _TripsChartState extends State<TripsChart> {
               label: "Distance Travelled",
             ),
             SizedBox(width: 6),
-            _LegendItem(
-              color: tOrange1.withOpacity(0.9),
-              label: "Consumed Hours",
-            ),
+            _LegendItem(color: tPink.withOpacity(0.9), label: "Opertion Hours"),
           ],
         ),
       ],
@@ -326,13 +322,13 @@ class _TripsChartState extends State<TripsChart> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? (isDark ? tWhite : tBlack) : Colors.transparent,
-          borderRadius: BorderRadius.circular(5),
+          // borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
           label,
           style: GoogleFonts.urbanist(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color:
                 isSelected
                     ? (isDark ? tBlack : tWhite)

@@ -74,18 +74,17 @@ class _AlertsChartState extends State<AlertsChart> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Alerts Overview',
+              'Alerts',
               style: GoogleFonts.urbanist(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: isDark ? tWhite : tBlack,
               ),
             ),
             Container(
               decoration: BoxDecoration(
-                color:
-                    isDark ? tWhite.withOpacity(0.1) : tBlack.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(10),
+                color: tGrey.withOpacity(0.1),
+                // borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(5),
               child: Row(
@@ -154,7 +153,7 @@ class _AlertsChartState extends State<AlertsChart> {
                       getTooltipColor: (group) => isDark ? tWhite : tBlack,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final data = chartData[group.x.toInt()];
-                        final colors = [tOrange1, tRed];
+                        final colors = [tOrange1, tBlueSky];
                         final labels = ["Critical", "Non-Critical"];
                         final values = [
                           data["critical"].toString(),
@@ -251,7 +250,7 @@ class _AlertsChartState extends State<AlertsChart> {
                             ),
                             BarChartRodData(
                               toY: item["nonCritical"].toDouble(),
-                              color: tRed.withOpacity(0.9),
+                              color: tBlueSky.withOpacity(0.9),
                               width: 10,
                               borderRadius: BorderRadius.circular(0),
                             ),
@@ -287,7 +286,7 @@ class _AlertsChartState extends State<AlertsChart> {
           children: [
             _LegendItem(color: tOrange1, label: "Critical Alerts"),
             const SizedBox(width: 10),
-            _LegendItem(color: tRed, label: "Non-Critical Alerts"),
+            _LegendItem(color: tBlueSky, label: "Non-Critical Alerts"),
           ],
         ),
       ],
@@ -305,13 +304,13 @@ class _AlertsChartState extends State<AlertsChart> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected ? (isDark ? tWhite : tBlack) : Colors.transparent,
-          borderRadius: BorderRadius.circular(5),
+          // borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
           label,
           style: GoogleFonts.urbanist(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color:
                 isSelected
                     ? (isDark ? tBlack : tWhite)
